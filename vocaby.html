@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>VocabY — Arabcha lug'at</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="light">
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand"><div class="mark">ك</div>Vocab<span class="sub">Y</span></div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Dark mode">🌙</button>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-view="home">🏠 Bosh sahifa</button>
+    <button class="tab" data-view="dictionary">📖 Lug'at</button>
+    <button class="tab" data-view="flashcard-setup">🃏 Flashcard</button>
+    <button class="tab" data-view="quiz-setup">❓ Quiz</button>
+    <button class="tab" data-view="write-setup">✍️ Yozib topish</button>
+    <button class="tab" data-view="stats">📊 Statistika</button>
+  </div>
+
+  <!-- HOME -->
+  <section class="view active" data-view="home" id="view-home"></section>
+
+  <!-- DICTIONARY -->
+  <section class="view" data-view="dictionary" id="view-dictionary"></section>
+
+  <!-- FLASHCARD SETUP -->
+  <section class="view" data-view="flashcard-setup" id="view-flashcard-setup"></section>
+  <!-- FLASHCARD SESSION -->
+  <section class="view" data-view="flashcard-session" id="view-flashcard-session"></section>
+  <!-- FLASHCARD RESULTS -->
+  <section class="view" data-view="flashcard-results" id="view-flashcard-results"></section>
+
+  <!-- QUIZ -->
+  <section class="view" data-view="quiz-setup" id="view-quiz-setup"></section>
+  <section class="view" data-view="quiz-session" id="view-quiz-session"></section>
+  <section class="view" data-view="quiz-results" id="view-quiz-results"></section>
+
+  <!-- WRITE -->
+  <section class="view" data-view="write-setup" id="view-write-setup"></section>
+  <section class="view" data-view="write-session" id="view-write-session"></section>
+  <section class="view" data-view="write-results" id="view-write-results"></section>
+
+  <!-- STATS -->
+  <section class="view" data-view="stats" id="view-stats"></section>
+
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
