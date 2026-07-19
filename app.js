@@ -5,6 +5,7 @@ const STORAGE_WORDS_OLD = 'vocaby_words'; // eski versiyadan migratsiya uchun
 const STORAGE_LOG = 'vocaby_daily_log';
 const STORAGE_THEME = 'vocaby_theme';
 const STORAGE_INSTALL_DISMISSED = 'vocaby_install_dismissed';
+const STORAGE_SYNCED_UID = 'vocaby_synced_uid';
 
 /* ---------- Namuna lug'at (bo'sh holatda taklif qilinadi) ---------- */
 const SAMPLE_PAIRS = [
@@ -511,6 +512,16 @@ async function shareDeck(deckId){
     toast('Havola yaratishda xatolik ⚠️');
   }
 }
+function waitForModalFree(){
+  return new Promise(resolve=>{
+    const check = ()=>{
+      const overlay = document.getElementById('modalOverlay');
+      if(!overlay.classList.contains('active')) resolve();
+      else setTimeout(check, 300);
+    };
+    check();
+  });
+}
 async function checkIncomingShare(){
   const params = new URLSearchParams(location.search);
   const shareId = params.get('share');
@@ -521,6 +532,7 @@ async function checkIncomingShare(){
     if(!snap.exists){ toast('Havola topilmadi yoki eskirgan ❌'); return; }
     const data = snap.data();
     if(!data || !Array.isArray(data.words) || !data.words.length){ toast('Lug\'at bo\'sh yoki topilmadi ❌'); return; }
+    await waitForModalFree(); // boshqa oyna (mas: sinxronlash tanlovi) ochiq bo'lsa, kutamiz
     openModal(`
       <h2>Sizga lug'at ulashildi! 🎁</h2>
       <p class="lead">"<b>${escapeHTML(data.name)}</b>" lug'ati (${data.words.length} ta so'z) sizga ulashilgan. Uni qo'shasizmi?</p>
@@ -1296,6 +1308,12 @@ function openAccountModal(){
 }
 
 async function handleLoginSync(user){
+  // Agar bu qurilma shu hisob bilan avval sinxronlangan bo'lsa, qayta so'ramaymiz —
+  // real-vaqt tinglovchi o'zi eng so'nggi holatni yuklab oladi.
+  if(localStorage.getItem(STORAGE_SYNCED_UID) === user.uid){
+    startRealtimeSync(user.uid);
+    return;
+  }
   try{
     const docRef = db.collection('users').doc(user.uid);
     const snap = await docRef.get();
@@ -1303,21 +1321,28 @@ async function handleLoginSync(user){
     const localDecks = state.decks;
 
     if(cloudDecks.length && localDecks.length){
-      openSyncChoiceModal(cloudDecks, localDecks, docRef);
+      openSyncChoiceModal(cloudDecks, localDecks, docRef, user.uid);
     } else if(cloudDecks.length && !localDecks.length){
       state.decks = cloudDecks;
       saveDecks(true);
       renderCurrentView();
       toast("Bulutdagi lug'atlar yuklandi ☁️");
+      markSynced(user.uid);
     } else if(!cloudDecks.length && localDecks.length){
       await docRef.set({ decks: localDecks, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
       toast("Lug'atlaringiz bulutga saqlandi ☁️");
+      markSynced(user.uid);
+    } else {
+      markSynced(user.uid);
     }
     startRealtimeSync(user.uid);
   }catch(e){
     console.error(e);
     toast('Bulut bilan sinxronlashda xatolik ⚠️');
   }
+}
+function markSynced(uid){
+  localStorage.setItem(STORAGE_SYNCED_UID, uid);
 }
 
 /* ---- Real-vaqtda sinxronlash: boshqa qurilmadagi o'zgarishlarni avtomatik oladi ---- */
@@ -1339,7 +1364,7 @@ function stopRealtimeSync(){
   if(unsubscribeSnapshot){ unsubscribeSnapshot(); unsubscribeSnapshot = null; }
 }
 
-function openSyncChoiceModal(cloudDecks, localDecks, docRef){
+function openSyncChoiceModal(cloudDecks, localDecks, docRef, uid){
   openModal(`
     <h2>Ikkita lug'at to'plami topildi</h2>
     <p class="lead">Bu qurilmada ${localDecks.length} ta, bulutda esa ${cloudDecks.length} ta lug'at bor. Nima qilamiz?</p>
@@ -1352,12 +1377,14 @@ function openSyncChoiceModal(cloudDecks, localDecks, docRef){
   document.getElementById('btnUseCloud').onclick = ()=>{
     state.decks = cloudDecks;
     saveDecks(true);
+    markSynced(uid);
     closeModal();
     renderCurrentView();
     toast('Bulutdagi lug\'atlar tanlandi ☁️');
   };
   document.getElementById('btnUseLocal').onclick = async ()=>{
     await docRef.set({ decks: localDecks, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    markSynced(uid);
     closeModal();
     toast('Qurilmadagi lug\'atlar bulutga saqlandi 📱');
   };
@@ -1369,6 +1396,7 @@ function openSyncChoiceModal(cloudDecks, localDecks, docRef){
     });
     state.decks = merged;
     saveDecks();
+    markSynced(uid);
     closeModal();
     renderCurrentView();
     toast('Lug\'atlar birlashtirildi 🔀');
