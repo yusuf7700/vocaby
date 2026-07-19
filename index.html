@@ -3,7 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>VocabY — Arabcha lug'at</title>
+<title>VocabY — istalgan tildagi lug'atni oson yodlang</title>
+<meta name="description" content="VocabY — CSV yoki Google Sheets orqali o'z lug'atingizni qo'shing va flashcard, quiz, yozib topish mashqlari bilan tez yodlang. Har qanday til juftligi uchun.">
+
+<!-- Ijtimoiy tarmoqlarda preview -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="VocabY — istalgan tildagi lug'atni oson yodlang">
+<meta property="og:description" content="CSV yoki Google Sheets orqali o'z lug'atingizni qo'shing va flashcard, quiz, yozib topish mashqlari bilan yodlang.">
+<meta property="og:image" content="logo.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="VocabY">
+<meta name="twitter:description" content="Istalgan tildagi lug'atni flashcard, quiz va yozib topish mashqlari bilan yodlang.">
+<meta name="twitter:image" content="logo.png">
+
+<!-- Ilova/PWA ko'rinishi -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<meta name="theme-color" content="#6C86F5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="VocabY">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +33,7 @@
 <div class="app">
 
   <div class="topbar">
-    <div class="brand"><div class="mark">ك</div>Vocab<span class="sub">Y</span></div>
+    <div class="brand"><img src="logo.png" alt="VocabY" class="mark-img">Vocab<span class="sub">Y</span></div>
     <button class="theme-toggle" id="themeToggle" aria-label="Dark mode">🌙</button>
   </div>
 
@@ -31,6 +51,9 @@
 
   <!-- DICTIONARY -->
   <section class="view" data-view="dictionary" id="view-dictionary"></section>
+
+  <!-- MANUAL DECK CREATION -->
+  <section class="view" data-view="deck-manual" id="view-deck-manual"></section>
 
   <!-- FLASHCARD SETUP -->
   <section class="view" data-view="flashcard-setup" id="view-flashcard-setup"></section>
