@@ -252,7 +252,7 @@ function switchView(viewName){
   const tabMap = {
     'home':'home','dictionary':'dictionary','flashcard-setup':'flashcard-setup','flashcard-session':'flashcard-setup',
     'flashcard-results':'flashcard-setup','quiz-setup':'quiz-setup','quiz-session':'quiz-setup','quiz-results':'quiz-setup',
-    'write-setup':'write-setup','write-session':'write-setup','write-results':'write-setup','stats':'stats'
+    'write-setup':'write-setup','write-session':'write-setup','write-results':'write-setup','stats':'stats','settings':'settings'
   };
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === tabMap[viewName]));
   window.scrollTo({top:0, behavior:'smooth'});
@@ -277,6 +277,7 @@ function renderCurrentView(){
     'write-session': renderWriteSession,
     'write-results': renderWriteResults,
     'stats': renderStats,
+    'settings': renderSettings,
   };
   if(map[state.view]) map[state.view]();
 }
@@ -1217,6 +1218,167 @@ function renderStats(){
       </div>
     </div>
   `;
+}
+
+/* ================= SOZLAMALAR ================= */
+const APP_VERSION = 'VocabY v1.1';
+
+function renderSettings(){
+  const el = document.getElementById('view-settings');
+  const totalWords = allWordsFlat().length;
+  const theme = document.body.getAttribute('data-theme');
+
+  el.innerHTML = `
+    <div class="card">
+      <h1>⚙️ Sozlamalar</h1>
+      <p class="lead">Ilova sozlamalari va ma'lumotlarni boshqarish.</p>
+    </div>
+
+    <div class="card">
+      <h2>Ko'rinish</h2>
+      <label class="check-row" style="margin-top:10px;">
+        <input type="checkbox" id="darkModeCheck" ${theme==='dark'?'checked':''}> 🌙 Tungi rejim (dark mode)
+      </label>
+    </div>
+
+    <div class="card">
+      <h2>👤 Hisob</h2>
+      ${currentUser ? `
+        <p class="lead">Kirgan: <b>${escapeHTML(currentUser.email||currentUser.displayName||'')}</b></p>
+        <button class="btn btn-danger" id="settingsSignOut">Chiqish</button>
+      ` : `
+        <p class="lead">Hozircha kirmagansiz. Kirsangiz, lug'atlaringiz istalgan qurilmadan mavjud bo'ladi.</p>
+        <button class="btn btn-primary" id="settingsSignIn">🔐 Google bilan kirish</button>
+      `}
+    </div>
+
+    <div class="card">
+      <h2>Ma'lumotlar</h2>
+      <p class="lead">Jami ${state.decks.length} ta lug'at, ${totalWords} ta so'z.</p>
+      <div class="btn-row" style="flex-direction:column;">
+        <button class="btn btn-ghost btn-block" id="exportBtn">💾 Zaxira nusxa yuklab olish (JSON)</button>
+        <button class="btn btn-ghost btn-block" id="importBtn">📥 Zaxiradan tiklash</button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none;">
+        <button class="btn btn-outline btn-block" id="clearCacheBtn">🗑️ Keshni tozalash va yangilash</button>
+        <button class="btn btn-danger btn-block" id="resetAllBtn">⚠️ Hammasini tozalash</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>ℹ️ Ilova haqida</h2>
+      <p class="lead">${APP_VERSION} — istalgan tildagi lug'atni oson yodlash uchun.</p>
+    </div>
+  `;
+
+  document.getElementById('darkModeCheck').addEventListener('change', (e)=>{
+    const next = e.target.checked ? 'dark' : 'light';
+    document.body.setAttribute('data-theme', next);
+    localStorage.setItem(STORAGE_THEME, next);
+    document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+  });
+
+  const signInBtn = document.getElementById('settingsSignIn');
+  if(signInBtn) signInBtn.addEventListener('click', signInWithGoogle);
+  const signOutBtn = document.getElementById('settingsSignOut');
+  if(signOutBtn) signOutBtn.addEventListener('click', signOutUser);
+
+  document.getElementById('exportBtn').addEventListener('click', exportBackup);
+  document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFileInput').click());
+  document.getElementById('importFileInput').addEventListener('change', importBackupFile);
+  document.getElementById('clearCacheBtn').addEventListener('click', clearCacheAndReload);
+  document.getElementById('resetAllBtn').addEventListener('click', resetEverything);
+}
+
+function exportBackup(){
+  const backup = {
+    decks: state.decks,
+    exportedAt: new Date().toISOString(),
+    version: 1
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `vocaby-backup-${todayKey()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast('Zaxira nusxa yuklab olindi ✅');
+}
+
+function importBackupFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    let data;
+    try{
+      data = JSON.parse(reader.result);
+    }catch(err){
+      toast('Fayl noto\'g\'ri formatda ❌');
+      return;
+    }
+    if(!data || !Array.isArray(data.decks)){
+      toast('Fayl noto\'g\'ri formatda ❌');
+      return;
+    }
+    openModal(`
+      <h2>Zaxiradan tiklash</h2>
+      <p class="lead">Faylda ${data.decks.length} ta lug'at bor. Bu joriy lug'atlaringizni <b>butunlay almashtiradi</b>. Davom etasizmi?</p>
+      <div class="btn-row" style="flex-direction:column;">
+        <button class="btn btn-danger btn-block" id="btnConfirmRestore">Ha, tiklash</button>
+        <button class="btn btn-outline btn-block" id="btnCancelRestore">Bekor qilish</button>
+      </div>
+    `);
+    document.getElementById('btnConfirmRestore').onclick = ()=>{
+      state.decks = data.decks;
+      saveDecks();
+      closeModal();
+      toast('Zaxiradan tiklandi ✅');
+      switchView('home');
+    };
+    document.getElementById('btnCancelRestore').onclick = closeModal;
+  };
+  reader.readAsText(file, 'UTF-8');
+  e.target.value = ''; // bir xil faylni qayta tanlasa ham ishlashi uchun
+}
+
+async function clearCacheAndReload(){
+  toast('Kesh tozalanmoqda...');
+  try{
+    if('caches' in window){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+  }catch(e){
+    console.error(e);
+  }
+  setTimeout(()=> location.reload(), 500);
+}
+
+function resetEverything(){
+  openModal(`
+    <h2>Ishonchingiz komilmi?</h2>
+    <p class="lead">Barcha lug'atlar va progress <b>butunlay o'chiriladi</b> (bulutdagisi ham). Bu amalni ortga qaytarib bo'lmaydi.</p>
+    <div class="btn-row" style="flex-direction:column;">
+      <button class="btn btn-danger btn-block" id="btnConfirmReset">Ha, hammasini o'chirish</button>
+      <button class="btn btn-outline btn-block" id="btnCancelReset">Bekor qilish</button>
+    </div>
+  `);
+  document.getElementById('btnConfirmReset').onclick = ()=>{
+    state.decks = [];
+    saveDecks();
+    localStorage.removeItem(STORAGE_LOG);
+    closeModal();
+    toast('Hammasi tozalandi');
+    switchView('home');
+  };
+  document.getElementById('btnCancelReset').onclick = closeModal;
 }
 
 /* ================= THEME ================= */
