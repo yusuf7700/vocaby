@@ -430,6 +430,7 @@ function openDeckMenu(deckId){
     </div>
     <div class="btn-row" style="flex-direction:column;">
       <button class="btn btn-primary btn-block" id="btnSaveName">Nomni saqlash</button>
+      <button class="btn btn-ghost btn-block" id="btnShare">🔗 Ulashish havolasi</button>
       <button class="btn btn-ghost btn-block" id="btnSwap">🔄 Yo'nalishni almashtirish (old ↔ orqa)</button>
       <button class="btn btn-danger btn-block" id="btnDelete">🗑️ Lug'atni o'chirish</button>
       <button class="btn btn-outline btn-block" id="btnCancel">Yopish</button>
@@ -439,6 +440,9 @@ function openDeckMenu(deckId){
     renameDeck(deckId, document.getElementById('renameInput').value);
     closeModal();
     renderCurrentView();
+  };
+  document.getElementById('btnShare').onclick = ()=>{
+    shareDeck(deckId);
   };
   document.getElementById('btnSwap').onclick = ()=>{
     toggleDeckSwap(deckId);
@@ -464,6 +468,78 @@ function openDeckMenu(deckId){
     document.getElementById('btnCancelDelete').onclick = ()=> openDeckMenu(deckId);
   };
   document.getElementById('btnCancel').onclick = closeModal;
+}
+
+/* ---- Lug'atni ulashish (share link) ---- */
+function generateShareCode(){
+  return Math.random().toString(36).slice(2,8) + Math.random().toString(36).slice(2,6);
+}
+async function shareDeck(deckId){
+  const d = findDeck(deckId);
+  if(!d) return;
+  closeModal();
+  toast('Havola tayyorlanmoqda...');
+  const shareId = generateShareCode();
+  const payload = {
+    name: d.name,
+    words: d.words.map(w=>({ col1:w.col1, col2:w.col2, example:w.example||'', category:w.category||'' })),
+    sharedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    await db.collection('sharedDecks').doc(shareId).set(payload);
+    const url = `${location.origin}${location.pathname}?share=${shareId}`;
+    openModal(`
+      <h2>Havola tayyor! 🔗</h2>
+      <p class="lead">Bu havolani ulashing — kim ochsa, "${escapeHTML(d.name)}" lug'atini bir bosishda o'ziga qo'sha oladi (kirish shart emas).</p>
+      <input type="text" class="deck-name-input" id="shareLinkInput" value="${escapeHTML(url)}" readonly onclick="this.select()">
+      <div class="btn-row" style="flex-direction:column;">
+        <button class="btn btn-primary btn-block" id="copyShareBtn">📋 Havolani nusxalash</button>
+        <button class="btn btn-outline btn-block" id="closeShareBtn">Yopish</button>
+      </div>
+    `);
+    document.getElementById('copyShareBtn').onclick = ()=>{
+      navigator.clipboard.writeText(url)
+        .then(()=> toast('Nusxalandi ✅'))
+        .catch(()=>{
+          document.getElementById('shareLinkInput').select();
+          toast("Qo'lda nusxalang (matn tanlandi)");
+        });
+    };
+    document.getElementById('closeShareBtn').onclick = closeModal;
+  }catch(e){
+    console.error(e);
+    toast('Havola yaratishda xatolik ⚠️');
+  }
+}
+async function checkIncomingShare(){
+  const params = new URLSearchParams(location.search);
+  const shareId = params.get('share');
+  if(!shareId) return;
+  history.replaceState({}, '', location.pathname);
+  try{
+    const snap = await db.collection('sharedDecks').doc(shareId).get();
+    if(!snap.exists){ toast('Havola topilmadi yoki eskirgan ❌'); return; }
+    const data = snap.data();
+    if(!data || !Array.isArray(data.words) || !data.words.length){ toast('Lug\'at bo\'sh yoki topilmadi ❌'); return; }
+    openModal(`
+      <h2>Sizga lug'at ulashildi! 🎁</h2>
+      <p class="lead">"<b>${escapeHTML(data.name)}</b>" lug'ati (${data.words.length} ta so'z) sizga ulashilgan. Uni qo'shasizmi?</p>
+      <div class="btn-row" style="flex-direction:column;">
+        <button class="btn btn-primary btn-block" id="btnImportShared">✅ O'zimga qo'shish</button>
+        <button class="btn btn-outline btn-block" id="btnSkipShared">Kerak emas</button>
+      </div>
+    `);
+    document.getElementById('btnImportShared').onclick = ()=>{
+      createDeckFromPairs(data.name, data.words);
+      toast(`"${data.name}" lug'ati qo'shildi ✅`);
+      closeModal();
+      renderCurrentView();
+    };
+    document.getElementById('btnSkipShared').onclick = closeModal;
+  }catch(e){
+    console.error(e);
+    toast('Havolani yuklashda xatolik ⚠️');
+  }
 }
 
 /* ---- CSV import ---- */
@@ -1237,10 +1313,30 @@ async function handleLoginSync(user){
       await docRef.set({ decks: localDecks, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
       toast("Lug'atlaringiz bulutga saqlandi ☁️");
     }
+    startRealtimeSync(user.uid);
   }catch(e){
     console.error(e);
     toast('Bulut bilan sinxronlashda xatolik ⚠️');
   }
+}
+
+/* ---- Real-vaqtda sinxronlash: boshqa qurilmadagi o'zgarishlarni avtomatik oladi ---- */
+let unsubscribeSnapshot = null;
+function startRealtimeSync(uid){
+  if(unsubscribeSnapshot) unsubscribeSnapshot();
+  unsubscribeSnapshot = db.collection('users').doc(uid).onSnapshot(snap=>{
+    if(!snap.exists) return;
+    const cloudDecks = snap.data().decks;
+    if(!Array.isArray(cloudDecks)) return;
+    if(JSON.stringify(cloudDecks) === JSON.stringify(state.decks)) return; // bu bizning o'z yozuvimiz
+    state.decks = cloudDecks;
+    saveDecks(true); // faqat localStorage, qayta bulutga yozishni oldini olish uchun
+    renderCurrentView();
+    toast("Lug'atlar yangilandi (boshqa qurilmadan) 🔄");
+  }, err=>{ console.error(err); });
+}
+function stopRealtimeSync(){
+  if(unsubscribeSnapshot){ unsubscribeSnapshot(); unsubscribeSnapshot = null; }
 }
 
 function openSyncChoiceModal(cloudDecks, localDecks, docRef){
@@ -1283,12 +1379,26 @@ auth.onAuthStateChanged((user)=>{
   currentUser = user;
   renderAuthUI();
   if(user) handleLoginSync(user);
+  else stopRealtimeSync();
 });
+
+/* ================= SERVICE WORKER (to'liq offline ishlash) ================= */
+function registerServiceWorker(){
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('sw.js').catch(err=>{
+        console.error('Service worker ro\'yxatdan o\'tmadi:', err);
+      });
+    });
+  }
+}
 
 /* ================= INIT ================= */
 function init(){
   loadDecks();
   initTheme();
   switchView('home');
+  checkIncomingShare();
+  registerServiceWorker();
 }
 init();
