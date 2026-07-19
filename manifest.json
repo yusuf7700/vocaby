@@ -1,0 +1,13 @@
+{
+    "name": "VocabY",
+    "short_name": "VocabY",
+    "description": "Istalgan tildagi lug'atni oson yodlash",
+    "icons": [
+      { "src": "logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    ],
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#F6F7FC",
+    "theme_color": "#6C86F5"
+  }
