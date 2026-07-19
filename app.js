@@ -85,8 +85,9 @@ function loadDecks(){
 
   state.decks = [];
 }
-function saveDecks(){
+function saveDecks(skipCloud){
   localStorage.setItem(STORAGE_DECKS, JSON.stringify(state.decks));
+  if(!skipCloud) scheduleCloudSave();
 }
 function findDeck(id){
   return state.decks.find(d => d.id === id);
@@ -1142,6 +1143,146 @@ document.getElementById('themeToggle').addEventListener('click', ()=>{
   document.body.setAttribute('data-theme', next);
   localStorage.setItem(STORAGE_THEME, next);
   document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+});
+
+/* ================= AUTH & BULUTGA SINXRONLASH (Firebase) ================= */
+let currentUser = null;
+let cloudSyncTimer = null;
+const CLOUD_DEBOUNCE_MS = 900;
+
+function scheduleCloudSave(){
+  if(!currentUser) return;
+  clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(()=>{
+    db.collection('users').doc(currentUser.uid).set({
+      decks: state.decks,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(err=>{
+      console.error(err);
+      toast('Bulutga saqlashda xatolik ⚠️');
+    });
+  }, CLOUD_DEBOUNCE_MS);
+}
+
+function renderAuthUI(){
+  const btn = document.getElementById('authBtn');
+  if(!btn) return;
+  if(currentUser){
+    btn.className = 'auth-btn logged-in';
+    const photo = currentUser.photoURL;
+    btn.innerHTML = photo
+      ? `<img src="${photo}" alt="${escapeHTML(currentUser.displayName||'')}">`
+      : `<span style="padding:0 8px;">👤</span>`;
+    btn.title = currentUser.displayName || currentUser.email || '';
+    btn.onclick = ()=> openAccountModal();
+  } else {
+    btn.className = 'auth-btn';
+    btn.innerHTML = `🔐 Kirish`;
+    btn.title = '';
+    btn.onclick = ()=> signInWithGoogle();
+  }
+}
+
+function signInWithGoogle(){
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err=>{
+    console.error(err);
+    if(err.code !== 'auth/popup-closed-by-user'){
+      toast('Kirishda xatolik ⚠️');
+    }
+  });
+}
+function signOutUser(){
+  auth.signOut();
+  closeModal();
+  toast('Tizimdan chiqdingiz');
+}
+
+function openAccountModal(){
+  if(!currentUser) return;
+  openModal(`
+    <h2>Hisobim</h2>
+    <div style="display:flex;align-items:center;gap:14px;margin:18px 0 22px;">
+      ${currentUser.photoURL ? `<img src="${currentUser.photoURL}" style="width:52px;height:52px;border-radius:50%;">` : ''}
+      <div>
+        <div style="font-weight:800;font-size:16px;">${escapeHTML(currentUser.displayName||'')}</div>
+        <div style="font-size:13px;color:var(--ink-soft);">${escapeHTML(currentUser.email||'')}</div>
+      </div>
+    </div>
+    <p class="lead">Lug'atlaringiz bulutga saqlanmoqda — istalgan qurilmadan shu Google hisob bilan kirib davom etishingiz mumkin.</p>
+    <div class="btn-row" style="flex-direction:column;">
+      <button class="btn btn-danger btn-block" id="btnSignOut">Chiqish</button>
+      <button class="btn btn-outline btn-block" id="btnCloseAccount">Yopish</button>
+    </div>
+  `);
+  document.getElementById('btnSignOut').onclick = signOutUser;
+  document.getElementById('btnCloseAccount').onclick = closeModal;
+}
+
+async function handleLoginSync(user){
+  try{
+    const docRef = db.collection('users').doc(user.uid);
+    const snap = await docRef.get();
+    const cloudDecks = (snap.exists && Array.isArray(snap.data().decks)) ? snap.data().decks : [];
+    const localDecks = state.decks;
+
+    if(cloudDecks.length && localDecks.length){
+      openSyncChoiceModal(cloudDecks, localDecks, docRef);
+    } else if(cloudDecks.length && !localDecks.length){
+      state.decks = cloudDecks;
+      saveDecks(true);
+      renderCurrentView();
+      toast("Bulutdagi lug'atlar yuklandi ☁️");
+    } else if(!cloudDecks.length && localDecks.length){
+      await docRef.set({ decks: localDecks, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      toast("Lug'atlaringiz bulutga saqlandi ☁️");
+    }
+  }catch(e){
+    console.error(e);
+    toast('Bulut bilan sinxronlashda xatolik ⚠️');
+  }
+}
+
+function openSyncChoiceModal(cloudDecks, localDecks, docRef){
+  openModal(`
+    <h2>Ikkita lug'at to'plami topildi</h2>
+    <p class="lead">Bu qurilmada ${localDecks.length} ta, bulutda esa ${cloudDecks.length} ta lug'at bor. Nima qilamiz?</p>
+    <div class="btn-row" style="flex-direction:column;">
+      <button class="btn btn-primary btn-block" id="btnUseCloud">☁️ Bulutdagini ishlatish</button>
+      <button class="btn btn-ghost btn-block" id="btnUseLocal">📱 Bu qurilmadagini ishlatish</button>
+      <button class="btn btn-outline btn-block" id="btnMergeBoth">🔀 Ikkalasini birlashtirish</button>
+    </div>
+  `);
+  document.getElementById('btnUseCloud').onclick = ()=>{
+    state.decks = cloudDecks;
+    saveDecks(true);
+    closeModal();
+    renderCurrentView();
+    toast('Bulutdagi lug\'atlar tanlandi ☁️');
+  };
+  document.getElementById('btnUseLocal').onclick = async ()=>{
+    await docRef.set({ decks: localDecks, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    closeModal();
+    toast('Qurilmadagi lug\'atlar bulutga saqlandi 📱');
+  };
+  document.getElementById('btnMergeBoth').onclick = async ()=>{
+    const seen = new Set();
+    const merged = [];
+    localDecks.concat(cloudDecks).forEach(d=>{
+      if(!seen.has(d.id)){ seen.add(d.id); merged.push(d); }
+    });
+    state.decks = merged;
+    saveDecks();
+    closeModal();
+    renderCurrentView();
+    toast('Lug\'atlar birlashtirildi 🔀');
+  };
+}
+
+auth.onAuthStateChanged((user)=>{
+  currentUser = user;
+  renderAuthUI();
+  if(user) handleLoginSync(user);
 });
 
 /* ================= INIT ================= */
