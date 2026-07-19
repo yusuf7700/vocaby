@@ -1,11 +1,13 @@
 /* ===================== VocabY — asosiy mantiq ===================== */
 
-const STORAGE_WORDS = 'vocaby_words';
+const STORAGE_DECKS = 'vocaby_decks';
+const STORAGE_WORDS_OLD = 'vocaby_words'; // eski versiyadan migratsiya uchun
 const STORAGE_LOG = 'vocaby_daily_log';
 const STORAGE_THEME = 'vocaby_theme';
+const STORAGE_INSTALL_DISMISSED = 'vocaby_install_dismissed';
 
 /* ---------- Namuna lug'at (bo'sh holatda taklif qilinadi) ---------- */
-const SAMPLE_WORDS = [
+const SAMPLE_PAIRS = [
   ['كتاب','Kitob'],['بيت','Uy'],['شجرة','Daraxt'],['سيارة','Mashina'],
   ['قلم','Qalam'],['ماء','Suv'],['شمس','Quyosh'],['قمر','Oy'],
   ['مدرسة','Maktab'],['طعام','Ovqat'],['باب','Eshik'],['نافذة','Deraza'],
@@ -15,20 +17,126 @@ const SAMPLE_WORDS = [
 
 /* ---------- State ---------- */
 let state = {
-  words: [],
+  decks: [],
   view: 'home',
+  dictDeckFilter: 'all',
+  dictStatusFilter: 'all',
+  dictSearch: '',
+  manualRows: [],
 };
 
-/* ================= Storage helpers ================= */
-function loadWords(){
+/* ================= Umumiy yordamchilar ================= */
+function uid(prefix){
+  return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+function isArabicText(s){
+  return /[\u0600-\u06FF\u0750-\u077F]/.test(s || '');
+}
+function langClass(s){
+  return isArabicText(s) ? 'lang-ar' : 'lang-other';
+}
+function escapeHTML(s){
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : s;
+  return d.innerHTML;
+}
+function wordSpan(text, sizeClass){
+  return `<span class="${sizeClass} ${langClass(text)}">${escapeHTML(text)}</span>`;
+}
+function todayKey(){
+  return new Date().toISOString().slice(0,10);
+}
+
+/* ================= Deck (lug'at) storage ================= */
+function loadDecks(){
   try{
-    const raw = localStorage.getItem(STORAGE_WORDS);
-    state.words = raw ? JSON.parse(raw) : [];
-  }catch(e){ state.words = []; }
+    const raw = localStorage.getItem(STORAGE_DECKS);
+    if(raw){
+      state.decks = JSON.parse(raw);
+      return;
+    }
+  }catch(e){ state.decks = []; }
+
+  // Eski versiyadan migratsiya (vocaby_words mavjud bo'lsa)
+  try{
+    const oldRaw = localStorage.getItem(STORAGE_WORDS_OLD);
+    if(oldRaw){
+      const oldWords = JSON.parse(oldRaw);
+      if(Array.isArray(oldWords) && oldWords.length){
+        const deckId = uid('deck');
+        const words = oldWords.map((w,i)=>({
+          id: deckId + '_' + (i+1),
+          deckId: deckId,
+          col1: w.arabic || '',
+          col2: w.translation || '',
+          example: w.example || '',
+          category: w.category || '',
+          status: w.status || 'new',
+          favorite: !!w.favorite,
+          stats: w.stats || { correct:0, wrong:0, lastReviewed:null }
+        }));
+        state.decks = [{ id: deckId, name: "Mening lug'atim", swapped:false, createdAt: new Date().toISOString(), words }];
+        saveDecks();
+        localStorage.removeItem(STORAGE_WORDS_OLD);
+        return;
+      }
+    }
+  }catch(e){}
+
+  state.decks = [];
 }
-function saveWords(){
-  localStorage.setItem(STORAGE_WORDS, JSON.stringify(state.words));
+function saveDecks(){
+  localStorage.setItem(STORAGE_DECKS, JSON.stringify(state.decks));
 }
+function findDeck(id){
+  return state.decks.find(d => d.id === id);
+}
+function deckOf(word){
+  return findDeck(word.deckId);
+}
+function frontOf(word){
+  const d = deckOf(word);
+  return (d && d.swapped) ? word.col2 : word.col1;
+}
+function backOf(word){
+  const d = deckOf(word);
+  return (d && d.swapped) ? word.col1 : word.col2;
+}
+function allWordsFlat(){
+  return state.decks.flatMap(d => d.words);
+}
+function createDeckFromPairs(name, pairs){
+  const deckId = uid('deck');
+  const words = pairs.map((p,i)=>({
+    id: deckId + '_' + (i+1),
+    deckId: deckId,
+    col1: p.col1,
+    col2: p.col2,
+    example: p.example || '',
+    category: p.category || '',
+    status: 'new',
+    favorite: false,
+    stats: { correct:0, wrong:0, lastReviewed:null }
+  }));
+  const deck = { id: deckId, name: name || "Nomsiz lug'at", swapped:false, createdAt: new Date().toISOString(), words };
+  state.decks.push(deck);
+  saveDecks();
+  return deck;
+}
+function deleteDeck(id){
+  state.decks = state.decks.filter(d => d.id !== id);
+  saveDecks();
+}
+function renameDeck(id, newName){
+  const d = findDeck(id);
+  if(d && newName && newName.trim()){ d.name = newName.trim(); saveDecks(); }
+}
+function toggleDeckSwap(id){
+  const d = findDeck(id);
+  if(d){ d.swapped = !d.swapped; saveDecks(); }
+}
+
+/* ================= Kunlik statistika logi ================= */
 function loadLog(){
   try{
     const raw = localStorage.getItem(STORAGE_LOG);
@@ -37,9 +145,6 @@ function loadLog(){
 }
 function saveLog(log){
   localStorage.setItem(STORAGE_LOG, JSON.stringify(log));
-}
-function todayKey(){
-  return new Date().toISOString().slice(0,10);
 }
 function bumpLog(field, amount=1){
   const log = loadLog();
@@ -73,27 +178,22 @@ function parseCSV(text){
   return rows.filter(r => r.some(cell => cell.trim() !== ''));
 }
 
-function wordsFromCSVRows(rows){
+const HEADER_HINTS = ['arabic','arabcha','translation','tarjima','word','so\'z','soz','term','meaning','ma\'no','mano','front','back','so\'zlar'];
+function pairsFromCSVRows(rows){
   if(!rows.length) return [];
   let startIdx = 0;
   const header = rows[0].map(h => h.trim().toLowerCase());
-  const looksLikeHeader = header.includes('arabic') || header.includes('arabcha') || header.includes('translation') || header.includes('tarjima');
+  const looksLikeHeader = header.some(h => HEADER_HINTS.includes(h));
   if(looksLikeHeader) startIdx = 1;
   const out = [];
-  let maxId = state.words.reduce((m,w)=>Math.max(m,w.id||0), 0);
   for(let i=startIdx;i<rows.length;i++){
     const r = rows[i];
     if(!r[0] || !r[1]) continue;
-    maxId++;
     out.push({
-      id: maxId,
-      arabic: r[0].trim(),
-      translation: r[1].trim(),
+      col1: r[0].trim(),
+      col2: r[1].trim(),
       example: (r[2]||'').trim(),
       category: (r[3]||'').trim(),
-      status: 'new',
-      favorite: false,
-      stats: { correct:0, wrong:0, lastReviewed:null }
     });
   }
   return out;
@@ -109,24 +209,6 @@ function sheetsUrlToCSV(url){
   return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
 }
 
-function importWords(newWords, mode){
-  if(mode === 'replace'){
-    state.words = newWords;
-  } else {
-    // yangilash: mavjud arabcha so'z bo'lsa progressni saqlab qolamiz, yangilarini qo'shamiz
-    const existingByArabic = {};
-    state.words.forEach(w => existingByArabic[w.arabic] = w);
-    newWords.forEach(nw => {
-      if(!existingByArabic[nw.arabic]){
-        state.words.push(nw);
-      }
-    });
-  }
-  saveWords();
-  toast(`${newWords.length} ta so'z import qilindi ✅`);
-  renderCurrentView();
-}
-
 /* ================= UI helpers ================= */
 function toast(msg){
   let el = document.getElementById('vocaby-toast');
@@ -135,7 +217,8 @@ function toast(msg){
     el.id = 'vocaby-toast';
     el.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
       background:var(--ink);color:var(--sand);padding:13px 22px;border-radius:14px;font-weight:600;
-      font-size:14px;z-index:100;opacity:0;transition:all .3s ease;box-shadow:0 10px 30px rgba(0,0,0,0.3);`;
+      font-size:14px;z-index:100;opacity:0;transition:all .3s ease;box-shadow:0 10px 30px rgba(0,0,0,0.3);
+      max-width:88vw;text-align:center;`;
     document.body.appendChild(el);
   }
   el.textContent = msg;
@@ -147,9 +230,8 @@ function toast(msg){
   window._toastTimer = setTimeout(()=>{
     el.style.opacity = '0';
     el.style.transform = 'translateX(-50%) translateY(20px)';
-  }, 2200);
+  }, 2400);
 }
-
 function openModal(html){
   document.getElementById('modalContent').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('active');
@@ -182,51 +264,90 @@ function renderCurrentView(){
   const map = {
     'home': renderHome,
     'dictionary': renderDictionary,
+    'deck-manual': renderDeckManual,
     'flashcard-setup': renderFlashcardSetup,
+    'flashcard-session': renderFlashcardSession,
+    'flashcard-results': renderFlashcardResults,
     'quiz-setup': renderQuizSetup,
+    'quiz-session': renderQuizSession,
+    'quiz-results': renderQuizResults,
     'write-setup': renderWriteSetup,
-    'stats': renderStats
+    'write-session': renderWriteSession,
+    'write-results': renderWriteResults,
+    'stats': renderStats,
   };
   if(map[state.view]) map[state.view]();
+}
+
+/* ================= INSTALL BANNER ================= */
+function isStandalone(){
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+}
+function installBannerHTML(){
+  if(isStandalone()) return '';
+  if(localStorage.getItem(STORAGE_INSTALL_DISMISSED) === '1') return '';
+  return `
+    <div class="install-banner" id="installBanner">
+      <div class="ib-icon">📲</div>
+      <div class="ib-text"><b>Ilova sifatida o'rnating:</b> brauzeringiz menyusini (⋮ yoki ⋯ yoki ⬆️) oching va "Bosh ekranga qo'shish" tugmasini bosing.</div>
+      <button class="ib-close" id="installBannerClose" aria-label="Yopish">✕</button>
+    </div>`;
+}
+function bindInstallBanner(el){
+  const btn = el.querySelector('#installBannerClose');
+  if(btn) btn.addEventListener('click', ()=>{
+    localStorage.setItem(STORAGE_INSTALL_DISMISSED, '1');
+    const b = document.getElementById('installBanner');
+    if(b) b.remove();
+  });
 }
 
 /* ================= HOME ================= */
 function renderHome(){
   const el = document.getElementById('view-home');
-  const total = state.words.length;
-  const known = state.words.filter(w=>w.status==='known').length;
-  const pct = total ? Math.round((known/total)*100) : 0;
+  const totalWords = allWordsFlat().length;
 
   el.innerHTML = `
-    <div class="card">
+    ${installBannerHTML()}
+
+    ${state.decks.length ? `<div class="card">
+      <h1>Lug'atlarim 📚</h1>
+      <p class="lead">${state.decks.length} ta lug'at, ${totalWords} ta so'z</p>
+      <div class="deck-grid">
+        ${state.decks.map(d => deckCardHTML(d)).join('')}
+      </div>
+    </div>` : `<div class="card">
       <h1>Assalomu alaykum! 👋</h1>
-      <p class="lead">Arabcha so'zlarni oson va zavqli tarzda yodlang. CSV fayl yoki Google Sheets havolasini qo'shing.</p>
+      <p class="lead">Istalgan tildagi lug'atni oson va zavqli tarzda yodlang. Birinchi lug'atingizni qo'shishdan boshlaymiz.</p>
+    </div>`}
 
-      <div class="upload-zone" id="uploadZone">
-        <div class="icon">📄</div>
-        <div style="font-weight:700;margin-bottom:4px;">CSV faylni shu yerga tashlang yoki bosing</div>
-        <div style="font-size:13px;color:var(--ink-soft);">Format: arabcha, tarjima, misol(ixtiyoriy), kategoriya(ixtiyoriy)</div>
-        <input type="file" id="csvInput" accept=".csv">
+    <div class="card">
+      <h2>Yangi lug'at qo'shish</h2>
+      <p class="lead">CSV fayl, Google Sheets havolasi yoki o'zingiz qo'lda yozing. Arabcha bo'lishi shart emas — istalgan til juftligi (masalan ingliz-rus, ispan-o'zbek va h.k.) mos keladi.</p>
+      <div class="add-deck-grid">
+        <div class="add-deck-option" id="uploadZone">
+          <span class="icon">📄</span>
+          <h3>CSV fayl</h3>
+          <p>Bosing yoki faylni tashlang</p>
+          <input type="file" id="csvInput" accept=".csv" style="display:none;">
+        </div>
+        <div class="add-deck-option" id="sheetsZone">
+          <span class="icon">🔗</span>
+          <h3>Google Sheets</h3>
+          <p>Ommaga ochiq havola</p>
+        </div>
+        <div class="add-deck-option" id="manualZone">
+          <span class="icon">✍️</span>
+          <h3>Qo'lda yozish</h3>
+          <p>O'zingiz so'z qo'shing</p>
+        </div>
       </div>
-
-      <div class="sheets-row">
-        <input type="text" id="sheetsUrl" placeholder="Google Sheets havolasini shu yerga joylashtiring...">
-        <button class="btn btn-ghost" id="sheetsBtn">Yuklash</button>
-      </div>
-
-      ${total===0 ? `<div style="margin-top:16px;text-align:center;">
+      ${state.decks.length===0 ? `<div style="margin-top:16px;text-align:center;">
         <button class="btn btn-outline" id="loadSampleBtn">✨ Namuna lug'atni sinab ko'rish (20 ta so'z)</button>
       </div>` : ''}
-
-      ${total>0 ? `<div class="stats-grid">
-        <div class="stat-box"><div class="num">${total}</div><div class="label">Jami so'z</div></div>
-        <div class="stat-box"><div class="num">${known}</div><div class="label">Yodlandi</div></div>
-        <div class="stat-box"><div class="num">${pct}%</div><div class="label">Progress</div></div>
-      </div>
-      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div>` : ''}
     </div>
 
-    ${total>0 ? `<div class="card">
+    ${totalWords>0 ? `<div class="card">
       <h2>Mashqni boshlash</h2>
       <p class="lead" style="margin-bottom:14px;">Qaysi mashq turi bilan ishlaysiz?</p>
       <div class="mode-grid">
@@ -238,31 +359,113 @@ function renderHome(){
     </div>` : ''}
   `;
 
-  document.getElementById('uploadZone').addEventListener('click', ()=> document.getElementById('csvInput').click());
+  bindInstallBanner(el);
+
+  el.querySelectorAll('.deck-card').forEach(card=>{
+    card.addEventListener('click', (e)=>{
+      if(e.target.closest('.deck-menu-btn')) return;
+      state.dictDeckFilter = card.dataset.deck;
+      switchView('dictionary');
+    });
+    const menuBtn = card.querySelector('.deck-menu-btn');
+    if(menuBtn) menuBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openDeckMenu(card.dataset.deck);
+    });
+  });
+
+  const uploadZone = document.getElementById('uploadZone');
+  uploadZone.addEventListener('click', ()=> document.getElementById('csvInput').click());
   document.getElementById('csvInput').addEventListener('change', handleCSVFile);
-  document.getElementById('sheetsBtn').addEventListener('click', handleSheetsImport);
+  uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.style.borderColor='var(--teal)'; });
+  uploadZone.addEventListener('dragleave', ()=>{ uploadZone.style.borderColor=''; });
+  uploadZone.addEventListener('drop', e=>{
+    e.preventDefault(); uploadZone.style.borderColor='';
+    if(e.dataTransfer.files[0]) readCSVFile(e.dataTransfer.files[0]);
+  });
+
+  document.getElementById('sheetsZone').addEventListener('click', openSheetsModal);
+  document.getElementById('manualZone').addEventListener('click', ()=>{
+    state.manualRows = [{col1:'',col2:''},{col1:'',col2:''},{col1:'',col2:''}];
+    switchView('deck-manual');
+  });
+
   const sampleBtn = document.getElementById('loadSampleBtn');
   if(sampleBtn) sampleBtn.addEventListener('click', ()=>{
-    const sample = SAMPLE_WORDS.map(([ar,tr],i)=>({
-      id:i+1, arabic:ar, translation:tr, example:'', category:'',
-      status:'new', favorite:false, stats:{correct:0,wrong:0,lastReviewed:null}
-    }));
-    importWords(sample, 'replace');
+    const pairs = SAMPLE_PAIRS.map(([ar,tr])=>({col1:ar, col2:tr}));
+    createDeckFromPairs("Namuna lug'at", pairs);
+    toast("Namuna lug'at qo'shildi ✅");
+    renderHome();
   });
+
   el.querySelectorAll('.mode-card').forEach(c=>{
     c.addEventListener('click', ()=> switchView(c.dataset.go));
   });
-
-  // drag & drop
-  const zone = document.getElementById('uploadZone');
-  zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.style.borderColor='var(--teal)'; });
-  zone.addEventListener('dragleave', ()=>{ zone.style.borderColor=''; });
-  zone.addEventListener('drop', e=>{
-    e.preventDefault(); zone.style.borderColor='';
-    if(e.dataTransfer.files[0]) readCSVFile(e.dataTransfer.files[0]);
-  });
 }
 
+function deckCardHTML(d){
+  const total = d.words.length;
+  const known = d.words.filter(w=>w.status==='known').length;
+  const pct = total ? Math.round((known/total)*100) : 0;
+  return `
+    <div class="deck-card" data-deck="${d.id}">
+      <button class="deck-menu-btn" aria-label="Menyu">⋮</button>
+      <h3>${escapeHTML(d.name)}</h3>
+      <div class="deck-meta">${total} ta so'z • ${pct}% yodlandi</div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    </div>
+  `;
+}
+
+function openDeckMenu(deckId){
+  const d = findDeck(deckId);
+  if(!d) return;
+  openModal(`
+    <h2>${escapeHTML(d.name)}</h2>
+    <p class="lead">Lug'at bilan nima qilamiz?</p>
+    <div class="option-group">
+      <label class="group-label">Lug'at nomi</label>
+      <input type="text" class="deck-name-input" id="renameInput" value="${escapeHTML(d.name)}" style="margin-bottom:0;">
+    </div>
+    <div class="btn-row" style="flex-direction:column;">
+      <button class="btn btn-primary btn-block" id="btnSaveName">Nomni saqlash</button>
+      <button class="btn btn-ghost btn-block" id="btnSwap">🔄 Yo'nalishni almashtirish (old ↔ orqa)</button>
+      <button class="btn btn-danger btn-block" id="btnDelete">🗑️ Lug'atni o'chirish</button>
+      <button class="btn btn-outline btn-block" id="btnCancel">Yopish</button>
+    </div>
+  `);
+  document.getElementById('btnSaveName').onclick = ()=>{
+    renameDeck(deckId, document.getElementById('renameInput').value);
+    closeModal();
+    renderCurrentView();
+  };
+  document.getElementById('btnSwap').onclick = ()=>{
+    toggleDeckSwap(deckId);
+    toast("Yo'nalish almashtirildi 🔄");
+    closeModal();
+    renderCurrentView();
+  };
+  document.getElementById('btnDelete').onclick = ()=>{
+    openModal(`
+      <h2>Ishonchingiz komilmi?</h2>
+      <p class="lead">"${escapeHTML(d.name)}" lug'ati va undagi barcha so'zlar butunlay o'chiriladi. Bu amalni ortga qaytarib bo'lmaydi.</p>
+      <div class="btn-row" style="flex-direction:column;">
+        <button class="btn btn-danger btn-block" id="btnConfirmDelete">Ha, o'chirish</button>
+        <button class="btn btn-outline btn-block" id="btnCancelDelete">Bekor qilish</button>
+      </div>
+    `);
+    document.getElementById('btnConfirmDelete').onclick = ()=>{
+      deleteDeck(deckId);
+      toast("Lug'at o'chirildi");
+      closeModal();
+      renderCurrentView();
+    };
+    document.getElementById('btnCancelDelete').onclick = ()=> openDeckMenu(deckId);
+  };
+  document.getElementById('btnCancel').onclick = closeModal;
+}
+
+/* ---- CSV import ---- */
 function handleCSVFile(e){
   const file = e.target.files[0];
   if(file) readCSVFile(file);
@@ -271,114 +474,194 @@ function readCSVFile(file){
   const reader = new FileReader();
   reader.onload = ()=>{
     const rows = parseCSV(reader.result);
-    const words = wordsFromCSVRows(rows);
-    if(!words.length){ toast('CSV faylda so\'z topilmadi ❌'); return; }
-    askImportMode(words);
+    const pairs = pairsFromCSVRows(rows);
+    if(!pairs.length){ toast('CSV faylda so\'z topilmadi ❌'); return; }
+    const defaultName = file.name.replace(/\.csv$/i, '');
+    openDeckNameModal(defaultName, pairs);
   };
   reader.readAsText(file, 'UTF-8');
 }
-async function handleSheetsImport(){
-  const url = document.getElementById('sheetsUrl').value.trim();
-  if(!url){ toast('Havola kiritilmadi'); return; }
-  const csvUrl = sheetsUrlToCSV(url);
-  if(!csvUrl){ toast('Havola noto\'g\'ri ko\'rinishda ❌'); return; }
-  try{
-    const res = await fetch(csvUrl);
-    if(!res.ok) throw new Error();
-    const text = await res.text();
-    const rows = parseCSV(text);
-    const words = wordsFromCSVRows(rows);
-    if(!words.length){ toast('Jadvalda so\'z topilmadi ❌'); return; }
-    askImportMode(words);
-  }catch(err){
-    toast('Yuklashda xatolik. Jadval ommaga ochiq (Anyone with the link) ekanini tekshiring.');
-  }
-}
-function askImportMode(words){
-  if(state.words.length === 0){
-    importWords(words, 'replace');
-    return;
-  }
+function openSheetsModal(){
   openModal(`
-    <h2>Import qilish</h2>
-    <p class="lead">Mavjud ${state.words.length} ta so'z bor. Nima qilamiz?</p>
+    <h2>Google Sheets havolasi</h2>
+    <p class="lead">Jadval "Anyone with the link" (ommaga ochiq) qilib ulashilgan bo'lishi kerak.</p>
+    <input type="text" class="deck-name-input" id="sheetsUrlInput" placeholder="https://docs.google.com/spreadsheets/d/...">
     <div class="btn-row" style="flex-direction:column;">
-      <button class="btn btn-primary btn-block" id="modeUpdate">Yangilarini qo'shish (progress saqlanadi)</button>
-      <button class="btn btn-danger btn-block" id="modeReplace">Almashtirish (hammasi 0 dan boshlanadi)</button>
-      <button class="btn btn-outline btn-block" id="modeCancel">Bekor qilish</button>
+      <button class="btn btn-primary btn-block" id="sheetsLoadBtn">Yuklash</button>
+      <button class="btn btn-outline btn-block" id="sheetsCancelBtn">Bekor qilish</button>
     </div>
   `);
-  document.getElementById('modeUpdate').onclick = ()=>{ importWords(words,'update'); closeModal(); };
-  document.getElementById('modeReplace').onclick = ()=>{ importWords(words,'replace'); closeModal(); };
-  document.getElementById('modeCancel').onclick = closeModal;
+  document.getElementById('sheetsCancelBtn').onclick = closeModal;
+  document.getElementById('sheetsLoadBtn').onclick = async ()=>{
+    const url = document.getElementById('sheetsUrlInput').value.trim();
+    if(!url){ toast('Havola kiritilmadi'); return; }
+    const csvUrl = sheetsUrlToCSV(url);
+    if(!csvUrl){ toast('Havola noto\'g\'ri ko\'rinishda ❌'); return; }
+    try{
+      const res = await fetch(csvUrl);
+      if(!res.ok) throw new Error();
+      const text = await res.text();
+      const rows = parseCSV(text);
+      const pairs = pairsFromCSVRows(rows);
+      if(!pairs.length){ toast('Jadvalda so\'z topilmadi ❌'); return; }
+      closeModal();
+      openDeckNameModal("Yangi lug'at", pairs);
+    }catch(err){
+      toast('Yuklashda xatolik. Jadval ommaga ochiq ekanini tekshiring.');
+    }
+  };
+}
+function openDeckNameModal(defaultName, pairs){
+  openModal(`
+    <h2>Lug'at nomini kiriting</h2>
+    <p class="lead">${pairs.length} ta so'z topildi.</p>
+    <input type="text" class="deck-name-input" id="deckNameInput" value="${escapeHTML(defaultName)}">
+    <div class="btn-row" style="flex-direction:column;">
+      <button class="btn btn-primary btn-block" id="deckNameConfirm">Saqlash</button>
+      <button class="btn btn-outline btn-block" id="deckNameCancel">Bekor qilish</button>
+    </div>
+  `);
+  document.getElementById('deckNameCancel').onclick = closeModal;
+  document.getElementById('deckNameConfirm').onclick = ()=>{
+    const name = document.getElementById('deckNameInput').value.trim() || defaultName;
+    createDeckFromPairs(name, pairs);
+    toast(`"${name}" lug'ati qo'shildi ✅`);
+    closeModal();
+    renderCurrentView();
+  };
+}
+
+/* ================= QO'LDA LUG'AT YOZISH ================= */
+function renderDeckManual(){
+  const el = document.getElementById('view-deck-manual');
+  el.innerHTML = `
+    <div class="card">
+      <h1>✍️ Qo'lda lug'at yozish</h1>
+      <p class="lead">Har bir qatorga bitta so'z juftligini yozing. Til nomi shart emas — istalgan tilda yozishingiz mumkin.</p>
+      <input type="text" class="deck-name-input" id="manualDeckName" placeholder="Lug'at nomi (masalan: Ingliz tili so'zlari)">
+      <div id="manualRows"></div>
+      <button class="btn btn-ghost" id="addRowBtn">+ Qator qo'shish</button>
+      <div class="btn-row" style="margin-top:20px;flex-direction:column;">
+        <button class="btn btn-primary btn-block" id="saveManualBtn">Lug'atni saqlash</button>
+        <button class="btn btn-outline btn-block" id="cancelManualBtn">Bekor qilish</button>
+      </div>
+    </div>
+  `;
+  renderManualRows();
+
+  document.getElementById('addRowBtn').addEventListener('click', ()=>{
+    state.manualRows.push({col1:'',col2:''});
+    renderManualRows();
+  });
+  document.getElementById('saveManualBtn').addEventListener('click', ()=>{
+    const name = document.getElementById('manualDeckName').value.trim() || "Nomsiz lug'at";
+    const pairs = state.manualRows
+      .map(r=>({col1:(r.col1||'').trim(), col2:(r.col2||'').trim()}))
+      .filter(r=>r.col1 && r.col2);
+    if(!pairs.length){ toast("Kamida bitta to'liq qator kiriting ❌"); return; }
+    createDeckFromPairs(name, pairs);
+    toast(`"${name}" lug'ati qo'shildi ✅`);
+    switchView('home');
+  });
+  document.getElementById('cancelManualBtn').addEventListener('click', ()=> switchView('home'));
+}
+function renderManualRows(){
+  const wrap = document.getElementById('manualRows');
+  wrap.innerHTML = state.manualRows.map((r,i)=>`
+    <div class="manual-row" data-i="${i}">
+      <input type="text" placeholder="Old tomon (masalan: كتاب)" value="${escapeHTML(r.col1)}" data-field="col1">
+      <input type="text" placeholder="Orqa tomon (masalan: Kitob)" value="${escapeHTML(r.col2)}" data-field="col2">
+      <button class="row-remove" data-remove="${i}" aria-label="O'chirish">✕</button>
+    </div>
+  `).join('');
+  wrap.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const i = parseInt(inp.closest('.manual-row').dataset.i);
+      state.manualRows[i][inp.dataset.field] = inp.value;
+    });
+  });
+  wrap.querySelectorAll('[data-remove]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i = parseInt(btn.dataset.remove);
+      state.manualRows.splice(i,1);
+      if(state.manualRows.length === 0) state.manualRows.push({col1:'',col2:''});
+      renderManualRows();
+    });
+  });
 }
 
 /* ================= DICTIONARY ================= */
-let dictFilter = 'all';
-let dictSearch = '';
 function renderDictionary(){
   const el = document.getElementById('view-dictionary');
-  if(state.words.length === 0){
+  if(state.decks.length === 0){
     el.innerHTML = emptyStateHTML();
     bindEmptyState(el);
     return;
   }
-  let list = state.words.filter(w=>{
-    if(dictFilter==='known') return w.status==='known';
-    if(dictFilter==='unknown') return w.status==='unknown';
-    if(dictFilter==='favorite') return w.favorite;
+  let pool = state.dictDeckFilter === 'all'
+    ? allWordsFlat()
+    : (findDeck(state.dictDeckFilter)?.words || []);
+
+  let list = pool.filter(w=>{
+    if(state.dictStatusFilter==='known') return w.status==='known';
+    if(state.dictStatusFilter==='unknown') return w.status==='unknown';
+    if(state.dictStatusFilter==='favorite') return w.favorite;
     return true;
   });
-  if(dictSearch){
-    const s = dictSearch.toLowerCase();
-    list = list.filter(w => w.arabic.includes(dictSearch) || w.translation.toLowerCase().includes(s));
+  if(state.dictSearch){
+    const s = state.dictSearch.toLowerCase();
+    list = list.filter(w => (w.col1||'').toLowerCase().includes(s) || (w.col2||'').toLowerCase().includes(s));
   }
+
   el.innerHTML = `
     <div class="card">
       <h1>Lug'at</h1>
-      <p class="lead">${state.words.length} ta so'z</p>
+      <div class="tabs" style="padding:6px 0 16px;margin:0 -4px;">
+        <button class="filter-chip ${state.dictDeckFilter==='all'?'active':''}" data-deckf="all">Barcha lug'atlar</button>
+        ${state.decks.map(d=>`<button class="filter-chip ${state.dictDeckFilter===d.id?'active':''}" data-deckf="${d.id}">${escapeHTML(d.name)}</button>`).join('')}
+      </div>
+      <p class="lead">${pool.length} ta so'z</p>
       <div class="dict-toolbar">
-        <input type="text" id="dictSearch" placeholder="Qidirish..." value="${dictSearch}">
-        <button class="filter-chip ${dictFilter==='all'?'active':''}" data-f="all">Hammasi</button>
-        <button class="filter-chip ${dictFilter==='known'?'active':''}" data-f="known">🟢 Bilaman</button>
-        <button class="filter-chip ${dictFilter==='unknown'?'active':''}" data-f="unknown">🔴 Bilmayman</button>
-        <button class="filter-chip ${dictFilter==='favorite'?'active':''}" data-f="favorite">⭐ Sevimli</button>
+        <input type="text" id="dictSearch" placeholder="Qidirish..." value="${escapeHTML(state.dictSearch)}">
+        <button class="filter-chip ${state.dictStatusFilter==='all'?'active':''}" data-f="all">Hammasi</button>
+        <button class="filter-chip ${state.dictStatusFilter==='known'?'active':''}" data-f="known">🟢 Bilaman</button>
+        <button class="filter-chip ${state.dictStatusFilter==='unknown'?'active':''}" data-f="unknown">🔴 Bilmayman</button>
+        <button class="filter-chip ${state.dictStatusFilter==='favorite'?'active':''}" data-f="favorite">⭐ Sevimli</button>
       </div>
       <div class="word-grid">
         ${list.map(w => `
           <div class="word-card">
-            <button class="fav ${w.favorite?'active':''}" data-fav="${w.id}">${w.favorite?'⭐':'☆'}</button>
+            ${state.dictDeckFilter==='all' ? `<div class="deck-badge">${escapeHTML(deckOf(w)?.name||'')}</div>` : ''}
+            <button class="fav ${w.favorite?'active':''}" data-fav="${w.id}" style="${state.dictDeckFilter==='all'?'top:38px;':''}">${w.favorite?'⭐':'☆'}</button>
             <div class="status-dot status-${w.status}"></div>
-            <div class="ar">${escapeHTML(w.arabic)}</div>
-            <div class="tr">${escapeHTML(w.translation)}</div>
+            <div class="card-term ${langClass(frontOf(w))}" style="${state.dictDeckFilter==='all'?'margin-top:14px;':''}">${escapeHTML(frontOf(w))}</div>
+            <div class="tr">${escapeHTML(backOf(w))}</div>
           </div>
         `).join('') || `<p style="color:var(--ink-soft);">Hech narsa topilmadi.</p>`}
       </div>
     </div>
   `;
-  el.querySelector('#dictSearch').addEventListener('input', e=>{ dictSearch = e.target.value; renderDictionary(); });
-  el.querySelectorAll('.filter-chip').forEach(c=>{
-    c.addEventListener('click', ()=>{ dictFilter = c.dataset.f; renderDictionary(); });
+  el.querySelector('#dictSearch').addEventListener('input', e=>{ state.dictSearch = e.target.value; renderDictionary(); });
+  el.querySelectorAll('[data-deckf]').forEach(c=>{
+    c.addEventListener('click', ()=>{ state.dictDeckFilter = c.dataset.deckf; renderDictionary(); });
+  });
+  el.querySelectorAll('[data-f]').forEach(c=>{
+    c.addEventListener('click', ()=>{ state.dictStatusFilter = c.dataset.f; renderDictionary(); });
   });
   el.querySelectorAll('[data-fav]').forEach(b=>{
     b.addEventListener('click', ()=>{
-      const w = state.words.find(w=>w.id == b.dataset.fav);
+      const w = allWordsFlat().find(w=>w.id === b.dataset.fav);
       w.favorite = !w.favorite;
-      saveWords();
+      saveDecks();
       renderDictionary();
     });
   });
 }
-function escapeHTML(s){
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
-}
 function emptyStateHTML(){
   return `<div class="card empty-state">
     <div class="icon">📭</div>
-    <h2>Hali so'z yo'q</h2>
-    <p class="lead">Boshlash uchun CSV fayl yuklang yoki namuna lug'atdan foydalaning.</p>
+    <h2>Hali lug'at yo'q</h2>
+    <p class="lead">Boshlash uchun CSV fayl yuklang, Google Sheets ulang yoki qo'lda yozing.</p>
     <button class="btn btn-primary" id="emptyGoHome">Bosh sahifaga o'tish</button>
   </div>`;
 }
@@ -387,17 +670,29 @@ function bindEmptyState(el){
   if(b) b.addEventListener('click', ()=> switchView('home'));
 }
 
-/* ================= SETTINGS MODAL (umumiy: flashcard/quiz/write) ================= */
-function renderSetupView(viewId, title, desc, onStart){
+/* ================= SETUP VIEW (umumiy: flashcard/quiz/write) ================= */
+function renderSetupView(viewId, title, desc, onStart, minWordsRequired){
   const el = document.getElementById(viewId);
-  if(state.words.length === 0){
+  if(state.decks.length === 0 || allWordsFlat().length === 0){
     el.innerHTML = emptyStateHTML();
     bindEmptyState(el);
     return;
   }
-  const knownCount = state.words.filter(w=>w.status==='known').length;
-  const unknownCount = state.words.filter(w=>w.status==='unknown').length;
-  const favCount = state.words.filter(w=>w.favorite).length;
+  if(minWordsRequired && allWordsFlat().length < minWordsRequired){
+    el.innerHTML = `<div class="card empty-state">
+      <div class="icon">⚠️</div>
+      <h2>Yetarli so'z yo'q</h2>
+      <p class="lead">Bu mashq uchun kamida ${minWordsRequired} ta so'z kerak. Hozircha ${allWordsFlat().length} ta bor.</p>
+      <button class="btn btn-primary" id="emptyGoHome">Bosh sahifaga o'tish</button>
+    </div>`;
+    bindEmptyState(el);
+    return;
+  }
+
+  const allWords = allWordsFlat();
+  const knownCount = allWords.filter(w=>w.status==='known').length;
+  const unknownCount = allWords.filter(w=>w.status==='unknown').length;
+  const favCount = allWords.filter(w=>w.favorite).length;
 
   el.innerHTML = `
     <div class="card">
@@ -405,22 +700,31 @@ function renderSetupView(viewId, title, desc, onStart){
       <p class="lead">${desc}</p>
 
       <div class="option-group">
-        <label class="group-label">1. Nechta so'z bilan ishlaysiz?</label>
+        <label class="group-label">1. Qaysi lug'at(lar)dan?</label>
+        <div class="deck-select-list" id="deckSelectList">
+          ${state.decks.map(d=>`
+            <label class="check-row"><input type="checkbox" class="deckChk" value="${d.id}" checked> ${escapeHTML(d.name)} (${d.words.length})</label>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="option-group">
+        <label class="group-label">2. Nechta so'z bilan ishlaysiz?</label>
         <div class="radio-list" id="countList">
           ${[10,20,30,50,100].map(n=>`
             <label class="radio-row"><input type="radio" name="countOpt" value="${n}" ${n===20?'checked':''}> ${n} ta</label>
           `).join('')}
-          <label class="radio-row"><input type="radio" name="countOpt" value="all"> Hammasi (${state.words.length} ta)</label>
+          <label class="radio-row"><input type="radio" name="countOpt" value="all"> Hammasi</label>
           <label class="radio-row"><input type="radio" name="countOpt" value="custom"> O'zim kiritaman:
-            <span class="custom-count"><input type="number" id="customCount" min="1" max="${state.words.length}" value="15"> ta</span>
+            <span class="custom-count"><input type="number" id="customCount" min="1" value="15"> ta</span>
           </label>
         </div>
       </div>
 
       <div class="option-group">
-        <label class="group-label">2. Qaysi so'zlardan tanlansin?</label>
+        <label class="group-label">3. Qaysi so'zlardan tanlansin?</label>
         <div class="check-list">
-          <label class="check-row"><input type="checkbox" value="all" checked> Hammasidan (${state.words.length})</label>
+          <label class="check-row"><input type="checkbox" value="all" checked> Hammasidan (${allWords.length})</label>
           <label class="check-row"><input type="checkbox" value="unknown"> Bilmaganlardan (${unknownCount})</label>
           <label class="check-row"><input type="checkbox" value="known"> Bilganlardan (${knownCount})</label>
           <label class="check-row"><input type="checkbox" value="favorite"> Sevimlilardan (${favCount})</label>
@@ -447,32 +751,30 @@ function renderSetupView(viewId, title, desc, onStart){
   });
 
   el.querySelector('#startBtn').addEventListener('click', ()=>{
+    const selectedDeckIds = Array.from(el.querySelectorAll('.deckChk:checked')).map(c=>c.value);
+    if(selectedDeckIds.length === 0){ toast("Kamida bitta lug'at tanlang ❌"); return; }
+
     const countOptEl = el.querySelector('input[name="countOpt"]:checked');
     const countOpt = countOptEl ? countOptEl.value : '20';
-    let count;
-    if(countOpt === 'all') count = state.words.length;
-    else if(countOpt === 'custom') count = parseInt(el.querySelector('#customCount').value) || 10;
-    else count = parseInt(countOpt);
 
     const checked = Array.from(sourceChecks).filter(c=>c.checked).map(c=>c.value);
     const sources = checked.length ? checked : ['all'];
 
-    let pool = [];
-    if(sources.includes('all')){
-      pool = state.words.slice();
-    } else {
-      const idSet = new Set();
-      state.words.forEach(w=>{
-        if((sources.includes('unknown') && w.status==='unknown') ||
-           (sources.includes('known') && w.status==='known') ||
-           (sources.includes('favorite') && w.favorite)){
-          idSet.add(w.id);
-        }
-      });
-      pool = state.words.filter(w=>idSet.has(w.id));
+    let pool = allWords.filter(w => selectedDeckIds.includes(w.deckId));
+    if(!sources.includes('all')){
+      pool = pool.filter(w =>
+        (sources.includes('unknown') && w.status==='unknown') ||
+        (sources.includes('known') && w.status==='known') ||
+        (sources.includes('favorite') && w.favorite)
+      );
     }
 
     if(pool.length === 0){ toast('Tanlangan mezonlar bo\'yicha so\'z topilmadi ❌'); return; }
+
+    let count;
+    if(countOpt === 'all') count = pool.length;
+    else if(countOpt === 'custom') count = parseInt(el.querySelector('#customCount').value) || 10;
+    else count = parseInt(countOpt);
 
     const shuffle = el.querySelector('#shuffleOpt').checked;
     if(shuffle) pool = shuffleArray(pool);
@@ -494,71 +796,54 @@ function renderFlashcardSetup(){
   renderSetupView('view-flashcard-setup', '🃏 Flashcard sozlamalari', "Kartochkalarni ko'rib, o'zingizni baholang.", startFlashcardSession);
 }
 function renderQuizSetup(){
-  renderSetupView('view-quiz-setup', '❓ Quiz sozlamalari', "To'g'ri tarjimani tanlang.", startQuizSession);
-  // Quiz uchun kamida 4 ta so'z kerak
+  renderSetupView('view-quiz-setup', '❓ Quiz sozlamalari', "To'g'ri tarjimani tanlang.", startQuizSession, 4);
 }
 function renderWriteSetup(){
-  renderSetupView('view-write-setup', "✍️ Yozib topish sozlamalari", "Arabcha so'zning tarjimasini yozing.", startWriteSession);
+  renderSetupView('view-write-setup', "✍️ Yozib topish sozlamalari", "Berilgan so'zning tarjimasini yozing.", startWriteSession);
 }
 
-/* ================= GENERIC SESSION ENGINE ================= */
-/* session obyekti: { mainQueue, retryQueue, currentWord, correctCount, wrongCount, totalOriginal, mode } */
+/* ================= GENERIC SESSION ENGINE (retry-siz, bitta o'tish) ================= */
 function createSession(words){
   return {
-    mainQueue: words.slice(),
-    retryQueue: [],
-    inRetry: false,
+    queue: words.slice(),
     current: null,
     correctCount: 0,
     wrongCount: 0,
+    wrongWords: [],
     totalOriginal: words.length,
-    answeredIds: new Set(),
+    answeredCount: 0,
   };
 }
 function sessionNext(session){
-  if(session.mainQueue.length > 0){
-    session.current = session.mainQueue.shift();
-    return session.current;
-  }
-  if(session.retryQueue.length > 0){
-    session.inRetry = true;
-    session.current = session.retryQueue.shift();
+  if(session.queue.length > 0){
+    session.current = session.queue.shift();
     return session.current;
   }
   session.current = null;
   return null;
 }
 function sessionJudge(session, word, isCorrect){
-  const first = !session.answeredIds.has(word.id);
-  if(first){
-    session.answeredIds.add(word.id);
-    if(isCorrect) session.correctCount++; else session.wrongCount++;
-  }
+  session.answeredCount++;
+  if(isCorrect) session.correctCount++;
+  else { session.wrongCount++; session.wrongWords.push(word); }
   updateWordStatus(word, isCorrect);
-  if(!isCorrect){
-    // xato bo'lsa retry navbatiga qo'shamiz (agar allaqachon u yerda bo'lmasa)
-    if(!session.retryQueue.includes(word)) session.retryQueue.push(word);
-  } else {
-    session.retryQueue = session.retryQueue.filter(w => w.id !== word.id);
-  }
 }
 function updateWordStatus(word, isCorrect){
   const wasNew = word.status === 'new';
   word.status = isCorrect ? 'known' : 'unknown';
   word.stats.lastReviewed = todayKey();
   if(isCorrect) word.stats.correct++; else word.stats.wrong++;
-  saveWords();
+  saveDecks();
   if(wasNew) bumpLog('newCount', 1);
   else bumpLog('reviewedCount', 1);
   bumpLog('totalCount', 1);
   if(isCorrect) bumpLog('correctCount', 1);
 }
 function sessionProgressLabel(session){
-  const done = session.answeredIds.size;
-  return `${done} / ${session.totalOriginal}`;
+  return `${session.answeredCount} / ${session.totalOriginal}`;
 }
 function sessionProgressPct(session){
-  return session.totalOriginal ? Math.round((session.answeredIds.size/session.totalOriginal)*100) : 0;
+  return session.totalOriginal ? Math.round((session.answeredCount/session.totalOriginal)*100) : 0;
 }
 
 /* ================= FLASHCARD SESSION ================= */
@@ -571,8 +856,8 @@ function renderFlashcardSession(){
   const el = document.getElementById('view-flashcard-session');
   if(!fcSession){ switchView('flashcard-setup'); return; }
   const word = sessionNext(fcSession);
-  if(!word){ finishFlashcardSession(); return; }
-  const flipped = false;
+  if(!word){ switchView('flashcard-results'); return; }
+
   el.innerHTML = `
     <div class="card">
       <div class="session-top">
@@ -584,11 +869,11 @@ function renderFlashcardSession(){
       <div class="flash-stage">
         <div class="flashcard" id="flashcard">
           <div class="face face-front">
-            <div class="ar-word">${escapeHTML(word.arabic)}</div>
+            ${wordSpan(frontOf(word), 'hero-word')}
             <div class="hint">Bosib ko'ring ↓</div>
           </div>
           <div class="face face-back">
-            <div class="tr-word">${escapeHTML(word.translation)}</div>
+            ${wordSpan(backOf(word), 'hero-word-back')}
             ${word.example ? `<div class="example">${escapeHTML(word.example)}</div>` : ''}
           </div>
         </div>
@@ -613,24 +898,13 @@ function judgeFlashcard(word, isCorrect){
   sessionJudge(fcSession, word, isCorrect);
   renderFlashcardSession();
 }
-function finishFlashcardSession(){
-  switchView('flashcard-results');
-}
 function renderFlashcardResults(){
   renderGenericResults('view-flashcard-results', fcSession, {
     restart: ()=> switchView('flashcard-setup'),
     retryWrong: ()=>{
-      const words = state.words.filter(w => wrongIdsOf(fcSession).includes(w.id));
-      if(words.length===0){ toast('Xato so\'zlar yo\'q 🎉'); switchView('flashcard-setup'); return; }
-      startFlashcardSession(words);
+      if(fcSession.wrongWords.length===0){ toast('Xato so\'zlar yo\'q 🎉'); switchView('flashcard-setup'); return; }
+      startFlashcardSession(fcSession.wrongWords);
     }
-  });
-}
-function wrongIdsOf(session){
-  // so'nggi holatda 'unknown' bo'lgan va shu sessiyada ishtirok etgan so'zlar
-  return [...session.answeredIds].filter(id=>{
-    const w = state.words.find(w=>w.id===id);
-    return w && w.status === 'unknown';
   });
 }
 function renderGenericResults(viewId, session, actions){
@@ -663,7 +937,6 @@ function renderGenericResults(viewId, session, actions){
 /* ================= QUIZ SESSION ================= */
 let quizSession = null;
 function startQuizSession(words){
-  if(state.words.length < 4){ toast('Quiz uchun kamida 4 ta so\'z kerak ❌'); return; }
   quizSession = createSession(words);
   switchView('quiz-session');
 }
@@ -673,11 +946,16 @@ function renderQuizSession(){
   const word = sessionNext(quizSession);
   if(!word){ switchView('quiz-results'); return; }
 
-  const distractors = shuffleArray(state.words.filter(w=>w.id!==word.id)).slice(0,3);
+  const deck = deckOf(word);
+  let mates = deck.words.filter(w=>w.id!==word.id);
+  if(mates.length < 3){
+    const rest = allWordsFlat().filter(w=>w.id!==word.id && !mates.includes(w));
+    mates = mates.concat(shuffleArray(rest));
+  }
+  const distractors = shuffleArray(mates).slice(0,3);
   const options = shuffleArray([word, ...distractors]);
 
-  const el2 = el;
-  el2.innerHTML = `
+  el.innerHTML = `
     <div class="card">
       <div class="session-top">
         <span>Quiz ${sessionProgressLabel(quizSession)}</span>
@@ -685,9 +963,9 @@ function renderQuizSession(){
       </div>
       <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${sessionProgressPct(quizSession)}%"></div></div>
       <p class="lead" style="margin-top:16px;">Qaysi biri to'g'ri?</p>
-      <div class="quiz-word">${escapeHTML(word.arabic)}</div>
+      <div class="quiz-word">${wordSpan(frontOf(word), 'quiz-word-text')}</div>
       <div class="quiz-options" id="quizOptions">
-        ${options.map(o=>`<button class="quiz-option" data-id="${o.id}">${escapeHTML(o.translation)}</button>`).join('')}
+        ${options.map(o=>`<button class="quiz-option" data-id="${o.id}">${escapeHTML(backOf(o))}</button>`).join('')}
       </div>
       <div class="session-scoreboard">
         <span class="badge-known">🟢 To'g'ri: ${quizSession.correctCount}</span>
@@ -695,15 +973,15 @@ function renderQuizSession(){
       </div>
     </div>
   `;
-  const buttons = el2.querySelectorAll('.quiz-option');
+  const buttons = el.querySelectorAll('.quiz-option');
   buttons.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       buttons.forEach(b=>b.disabled=true);
-      const isCorrect = parseInt(btn.dataset.id) === word.id;
+      const isCorrect = btn.dataset.id === word.id;
       if(isCorrect){ btn.classList.add('correct'); }
       else {
         btn.classList.add('wrong');
-        const correctBtn = [...buttons].find(b=>parseInt(b.dataset.id)===word.id);
+        const correctBtn = [...buttons].find(b=>b.dataset.id===word.id);
         if(correctBtn) correctBtn.classList.add('correct');
       }
       sessionJudge(quizSession, word, isCorrect);
@@ -715,9 +993,8 @@ function renderQuizResults(){
   renderGenericResults('view-quiz-results', quizSession, {
     restart: ()=> switchView('quiz-setup'),
     retryWrong: ()=>{
-      const words = state.words.filter(w => wrongIdsOf(quizSession).includes(w.id));
-      if(words.length===0){ toast('Xato so\'zlar yo\'q 🎉'); switchView('quiz-setup'); return; }
-      startQuizSession(words);
+      if(quizSession.wrongWords.length===0){ toast('Xato so\'zlar yo\'q 🎉'); switchView('quiz-setup'); return; }
+      startQuizSession(quizSession.wrongWords);
     }
   });
 }
@@ -729,7 +1006,7 @@ function startWriteSession(words){
   switchView('write-session');
 }
 function normalizeAnswer(s){
-  return s.trim().toLowerCase().replace(/[.,!?'"’]/g,'');
+  return (s||'').trim().toLowerCase().replace(/[.,!?'"’]/g,'');
 }
 function renderWriteSession(){
   const el = document.getElementById('view-write-session');
@@ -744,8 +1021,8 @@ function renderWriteSession(){
         <span>${sessionProgressPct(writeSession)}%</span>
       </div>
       <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${sessionProgressPct(writeSession)}%"></div></div>
-      <p class="lead" style="margin-top:16px;">Arabcha so'zning tarjimasini yozing:</p>
-      <div class="quiz-word">${escapeHTML(word.arabic)}</div>
+      <p class="lead" style="margin-top:16px;">Berilgan so'zning tarjimasini yozing:</p>
+      <div class="quiz-word">${wordSpan(frontOf(word), 'quiz-word-text')}</div>
       <input type="text" class="write-input" id="writeAnswer" placeholder="Javobingiz..." autocomplete="off">
       <div class="write-feedback" id="writeFeedback"></div>
       <div class="btn-row" style="margin-top:16px;">
@@ -765,9 +1042,9 @@ function renderWriteSession(){
   function doCheck(){
     if(checked) return;
     checked = true;
-    const isCorrect = normalizeAnswer(input.value) === normalizeAnswer(word.translation);
+    const isCorrect = normalizeAnswer(input.value) === normalizeAnswer(backOf(word));
     input.classList.add(isCorrect ? 'correct' : 'wrong');
-    feedback.textContent = isCorrect ? "To'g'ri! ✅" : `Noto'g'ri. To'g'ri javob: ${word.translation}`;
+    feedback.textContent = isCorrect ? "To'g'ri! ✅" : `Noto'g'ri. To'g'ri javob: ${backOf(word)}`;
     feedback.className = 'write-feedback ' + (isCorrect ? 'correct':'wrong');
     input.disabled = true;
     checkBtn.textContent = "Keyingi →";
@@ -787,9 +1064,8 @@ function renderWriteResults(){
   renderGenericResults('view-write-results', writeSession, {
     restart: ()=> switchView('write-setup'),
     retryWrong: ()=>{
-      const words = state.words.filter(w => wrongIdsOf(writeSession).includes(w.id));
-      if(words.length===0){ toast('Xato so\'zlar yo\'q 🎉'); switchView('write-setup'); return; }
-      startWriteSession(words);
+      if(writeSession.wrongWords.length===0){ toast('Xato so\'zlar yo\'q 🎉'); switchView('write-setup'); return; }
+      startWriteSession(writeSession.wrongWords);
     }
   });
 }
@@ -802,13 +1078,13 @@ function renderStats(){
   const today = log[key] || { newCount:0, reviewedCount:0, correctCount:0, totalCount:0 };
   const acc = today.totalCount ? Math.round((today.correctCount/today.totalCount)*100) : 0;
 
-  const total = state.words.length;
-  const known = state.words.filter(w=>w.status==='known').length;
-  const unknown = state.words.filter(w=>w.status==='unknown').length;
+  const allWords = allWordsFlat();
+  const total = allWords.length;
+  const known = allWords.filter(w=>w.status==='known').length;
+  const unknown = allWords.filter(w=>w.status==='unknown').length;
   const neu = total - known - unknown;
   const pct = total ? Math.round((known/total)*100) : 0;
 
-  // oxirgi 7 kunlik mini-grafik
   const days = [];
   for(let i=6;i>=0;i--){
     const d = new Date();
@@ -821,7 +1097,7 @@ function renderStats(){
   el.innerHTML = `
     <div class="card">
       <h1>Statistika</h1>
-      <p class="lead">Umumiy progress</p>
+      <p class="lead">Umumiy progress (${state.decks.length} ta lug'at)</p>
       <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
       <div class="stats-grid">
         <div class="stat-box"><div class="num">${total}</div><div class="label">Jami so'z</div></div>
@@ -868,24 +1144,9 @@ document.getElementById('themeToggle').addEventListener('click', ()=>{
   document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
 });
 
-/* ================= Session view hooks (chunki bular ham "view" lar) ================= */
-const originalMap = {
-  'flashcard-session': renderFlashcardSession,
-  'flashcard-results': renderFlashcardResults,
-  'quiz-session': renderQuizSession,
-  'quiz-results': renderQuizResults,
-  'write-session': renderWriteSession,
-  'write-results': renderWriteResults,
-};
-const _renderCurrentView = renderCurrentView;
-renderCurrentView = function(){
-  if(originalMap[state.view]) return originalMap[state.view]();
-  return _renderCurrentView();
-};
-
 /* ================= INIT ================= */
 function init(){
-  loadWords();
+  loadDecks();
   initTheme();
   switchView('home');
 }
