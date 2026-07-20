@@ -136,6 +136,7 @@ p.lead{color:var(--ink-soft);margin:0 0 20px;font-size:15px;line-height:1.5;}
   font-family:var(--font-body);font-weight:700;font-size:15px;
   cursor:pointer;transition:transform .15s ease, box-shadow .15s ease;
 }
+a.btn{text-decoration:none;}
 .btn:active{transform:scale(0.97);}
 .btn-primary{background:var(--grad-primary);color:#fff;box-shadow:0 10px 24px -10px rgba(108,134,245,0.5);}
 .btn-primary:hover{box-shadow:0 14px 28px -10px rgba(108,134,245,0.6);}
@@ -325,6 +326,11 @@ p.lead{color:var(--ink-soft);margin:0 0 20px;font-size:15px;line-height:1.5;}
 @media (max-width:600px){
   .hero-word.lang-ar{font-size:42px;}
   .hero-word.lang-other{font-size:26px;}
+  .topbar{flex-wrap:wrap;gap:10px;}
+  .topbar-actions{gap:8px;}
+  .brand{font-size:19px;}
+  .auth-btn{padding:8px 12px;font-size:12.5px;}
+  .theme-toggle{width:40px;height:40px;}
 }
 
 /* ============ Ilova sifatida o'rnatish banneri ============ */
@@ -338,6 +344,15 @@ p.lead{color:var(--ink-soft);margin:0 0 20px;font-size:15px;line-height:1.5;}
 .install-banner .ib-text b{color:var(--ink);}
 .install-banner .ib-close{
   background:none;border:none;font-size:18px;color:var(--ink-soft);cursor:pointer;flex:0 0 auto;padding:4px;
+}
+.install-banner .ib-install-btn{
+  flex:0 0 auto;background:var(--grad-primary);color:#fff;border:none;
+  padding:9px 16px;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;
+  white-space:nowrap;
+}
+@media (max-width:600px){
+  .install-banner{flex-wrap:wrap;}
+  .install-banner .ib-install-btn{margin-left:38px;}
 }
 
 /* ============ Lug'atlar (decks) ============ */
@@ -390,4 +405,24 @@ p.lead{color:var(--ink-soft);margin:0 0 20px;font-size:15px;line-height:1.5;}
 @media (max-width:600px){
   .manual-row{grid-template-columns:1fr 1fr;}
   .manual-row .row-remove{grid-column:span 2;justify-self:end;}
+}
+
+/* ============ Takliflar va Donat ============ */
+.feedback-textarea{
+  width:100%;min-height:110px;padding:14px 16px;border-radius:16px;
+  border:1px solid var(--border);background:var(--card);color:var(--ink);
+  font-family:var(--font-body);font-size:14px;resize:vertical;margin-top:8px;
+}
+.feedback-textarea:focus{outline:2px solid var(--teal);outline-offset:1px;}
+
+.donate-box{
+  background:var(--grad-primary);border-radius:var(--radius-md);
+  padding:20px;text-align:center;margin-top:12px;
+}
+.donate-card-number{
+  font-family:var(--font-body);font-size:22px;font-weight:800;letter-spacing:2px;
+  color:#fff;
+}
+.donate-card-name{
+  font-size:13px;color:rgba(255,255,255,0.85);margin-top:6px;font-weight:600;
 }
