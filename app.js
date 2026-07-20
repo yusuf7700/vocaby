@@ -283,12 +283,39 @@ function renderCurrentView(){
 }
 
 /* ================= INSTALL BANNER ================= */
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if(state.view === 'home' || state.view === 'settings') renderCurrentView();
+});
+window.addEventListener('appinstalled', ()=>{
+  deferredInstallPrompt = null;
+  toast("VocabY o'rnatildi! 🎉");
+  if(state.view === 'home' || state.view === 'settings') renderCurrentView();
+});
+async function triggerInstallPrompt(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  try{ await deferredInstallPrompt.userChoice; }catch(e){}
+  deferredInstallPrompt = null;
+  renderCurrentView();
+}
 function isStandalone(){
   return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
 }
 function installBannerHTML(){
   if(isStandalone()) return '';
   if(localStorage.getItem(STORAGE_INSTALL_DISMISSED) === '1') return '';
+  if(deferredInstallPrompt){
+    return `
+      <div class="install-banner" id="installBanner">
+        <div class="ib-icon">📲</div>
+        <div class="ib-text"><b>VocabY'ni ilova sifatida o'rnating</b> — tezroq ochiladi, ekranda alohida ikonka bo'lib turadi.</div>
+        <button class="ib-install-btn" id="installNowBtn">O'rnatish</button>
+        <button class="ib-close" id="installBannerClose" aria-label="Yopish">✕</button>
+      </div>`;
+  }
   return `
     <div class="install-banner" id="installBanner">
       <div class="ib-icon">📲</div>
@@ -303,6 +330,8 @@ function bindInstallBanner(el){
     const b = document.getElementById('installBanner');
     if(b) b.remove();
   });
+  const installBtn = el.querySelector('#installNowBtn');
+  if(installBtn) installBtn.addEventListener('click', triggerInstallPrompt);
 }
 
 /* ================= HOME ================= */
@@ -761,7 +790,7 @@ function bindEmptyState(el){
 }
 
 /* ================= SETUP VIEW (umumiy: flashcard/quiz/write) ================= */
-function renderSetupView(viewId, title, desc, onStart, minWordsRequired){
+function renderSetupView(viewId, title, desc, onStart, mode, minWordsRequired){
   const el = document.getElementById(viewId);
   if(state.decks.length === 0 || allWordsFlat().length === 0){
     el.innerHTML = emptyStateHTML();
@@ -783,8 +812,23 @@ function renderSetupView(viewId, title, desc, onStart, minWordsRequired){
   const knownCount = allWords.filter(w=>w.status==='known').length;
   const unknownCount = allWords.filter(w=>w.status==='unknown').length;
   const favCount = allWords.filter(w=>w.favorite).length;
+  const newCount = allWords.filter(w=>w.status==='new').length;
+
+  const prefs = loadSetupPrefs(mode);
+  const resumeData = loadPersistedSession(mode);
+  const resumeBannerHTML = (resumeData && resumeData.queue.length > 0) ? `
+    <div class="card" style="border:1.5px solid var(--teal);">
+      <h2>⏸️ Tugallanmagan mashq bor</h2>
+      <p class="lead">${resumeData.answeredCount} / ${resumeData.totalOriginal} ta so'z javob berilgan. Davom etasizmi?</p>
+      <div class="btn-row" style="flex-direction:column;">
+        <button class="btn btn-primary btn-block" id="resumeBtn">▶️ Davom ettirish</button>
+        <button class="btn btn-outline btn-block" id="discardResumeBtn">🔁 Qaytadan boshlash</button>
+      </div>
+    </div>
+  ` : '';
 
   el.innerHTML = `
+    ${resumeBannerHTML}
     <div class="card">
       <h1>${title}</h1>
       <p class="lead">${desc}</p>
@@ -792,9 +836,10 @@ function renderSetupView(viewId, title, desc, onStart, minWordsRequired){
       <div class="option-group">
         <label class="group-label">1. Qaysi lug'at(lar)dan?</label>
         <div class="deck-select-list" id="deckSelectList">
-          ${state.decks.map(d=>`
-            <label class="check-row"><input type="checkbox" class="deckChk" value="${d.id}" checked> ${escapeHTML(d.name)} (${d.words.length})</label>
-          `).join('')}
+          ${state.decks.map(d=>{
+            const isChecked = prefs && Array.isArray(prefs.deckIds) ? prefs.deckIds.includes(d.id) : true;
+            return `<label class="check-row"><input type="checkbox" class="deckChk" value="${d.id}" ${isChecked?'checked':''}> ${escapeHTML(d.name)} (${d.words.length})</label>`;
+          }).join('')}
         </div>
       </div>
 
@@ -802,11 +847,11 @@ function renderSetupView(viewId, title, desc, onStart, minWordsRequired){
         <label class="group-label">2. Nechta so'z bilan ishlaysiz?</label>
         <div class="radio-list" id="countList">
           ${[10,20,30,50,100].map(n=>`
-            <label class="radio-row"><input type="radio" name="countOpt" value="${n}" ${n===20?'checked':''}> ${n} ta</label>
+            <label class="radio-row"><input type="radio" name="countOpt" value="${n}" ${(prefs?prefs.countOpt===String(n):n===20)?'checked':''}> ${n} ta</label>
           `).join('')}
-          <label class="radio-row"><input type="radio" name="countOpt" value="all"> Hammasi</label>
-          <label class="radio-row"><input type="radio" name="countOpt" value="custom"> O'zim kiritaman:
-            <span class="custom-count"><input type="number" id="customCount" min="1" value="15"> ta</span>
+          <label class="radio-row"><input type="radio" name="countOpt" value="all" ${prefs&&prefs.countOpt==='all'?'checked':''}> Hammasi</label>
+          <label class="radio-row"><input type="radio" name="countOpt" value="custom" ${prefs&&prefs.countOpt==='custom'?'checked':''}> O'zim kiritaman:
+            <span class="custom-count"><input type="number" id="customCount" min="1" value="${prefs&&prefs.customCount?prefs.customCount:15}"> ta</span>
           </label>
         </div>
       </div>
@@ -814,20 +859,29 @@ function renderSetupView(viewId, title, desc, onStart, minWordsRequired){
       <div class="option-group">
         <label class="group-label">3. Qaysi so'zlardan tanlansin?</label>
         <div class="check-list">
-          <label class="check-row"><input type="checkbox" value="all" checked> Hammasidan (${allWords.length})</label>
-          <label class="check-row"><input type="checkbox" value="unknown"> Bilmaganlardan (${unknownCount})</label>
-          <label class="check-row"><input type="checkbox" value="known"> Bilganlardan (${knownCount})</label>
-          <label class="check-row"><input type="checkbox" value="favorite"> Sevimlilardan (${favCount})</label>
+          <label class="check-row"><input type="checkbox" value="all" ${(!prefs||!prefs.sources||prefs.sources.includes('all'))?'checked':''}> Hammasidan (${allWords.length})</label>
+          <label class="check-row"><input type="checkbox" value="new" ${prefs&&prefs.sources&&prefs.sources.includes('new')?'checked':''}> Belgilanmaganlardan (${newCount})</label>
+          <label class="check-row"><input type="checkbox" value="unknown" ${prefs&&prefs.sources&&prefs.sources.includes('unknown')?'checked':''}> Bilmaganlardan (${unknownCount})</label>
+          <label class="check-row"><input type="checkbox" value="known" ${prefs&&prefs.sources&&prefs.sources.includes('known')?'checked':''}> Bilganlardan (${knownCount})</label>
+          <label class="check-row"><input type="checkbox" value="favorite" ${prefs&&prefs.sources&&prefs.sources.includes('favorite')?'checked':''}> Sevimlilardan (${favCount})</label>
         </div>
       </div>
 
       <div class="option-group">
-        <label class="check-row"><input type="checkbox" id="shuffleOpt" checked> So'zlarni tasodifiy tartibda chiqarish</label>
+        <label class="check-row"><input type="checkbox" id="shuffleOpt" ${(!prefs||prefs.shuffle!==false)?'checked':''}> So'zlarni tasodifiy tartibda chiqarish</label>
       </div>
 
       <button class="btn btn-primary btn-block" id="startBtn">Mashqni boshlash 🚀</button>
     </div>
   `;
+
+  const resumeBtn = el.querySelector('#resumeBtn');
+  if(resumeBtn) resumeBtn.addEventListener('click', ()=> resumeSession(mode, resumeData));
+  const discardBtn = el.querySelector('#discardResumeBtn');
+  if(discardBtn) discardBtn.addEventListener('click', ()=>{
+    clearPersistedSession(mode);
+    renderSetupView(viewId, title, desc, onStart, mode, minWordsRequired);
+  });
 
   const sourceChecks = el.querySelectorAll('.check-list input');
   sourceChecks.forEach(c=>{
@@ -846,6 +900,7 @@ function renderSetupView(viewId, title, desc, onStart, minWordsRequired){
 
     const countOptEl = el.querySelector('input[name="countOpt"]:checked');
     const countOpt = countOptEl ? countOptEl.value : '20';
+    const customCountVal = parseInt(el.querySelector('#customCount').value) || 10;
 
     const checked = Array.from(sourceChecks).filter(c=>c.checked).map(c=>c.value);
     const sources = checked.length ? checked : ['all'];
@@ -853,6 +908,7 @@ function renderSetupView(viewId, title, desc, onStart, minWordsRequired){
     let pool = allWords.filter(w => selectedDeckIds.includes(w.deckId));
     if(!sources.includes('all')){
       pool = pool.filter(w =>
+        (sources.includes('new') && w.status==='new') ||
         (sources.includes('unknown') && w.status==='unknown') ||
         (sources.includes('known') && w.status==='known') ||
         (sources.includes('favorite') && w.favorite)
@@ -863,10 +919,13 @@ function renderSetupView(viewId, title, desc, onStart, minWordsRequired){
 
     let count;
     if(countOpt === 'all') count = pool.length;
-    else if(countOpt === 'custom') count = parseInt(el.querySelector('#customCount').value) || 10;
+    else if(countOpt === 'custom') count = customCountVal;
     else count = parseInt(countOpt);
 
     const shuffle = el.querySelector('#shuffleOpt').checked;
+
+    saveSetupPrefs(mode, { deckIds: selectedDeckIds, countOpt, customCount: customCountVal, sources, shuffle });
+
     if(shuffle) pool = shuffleArray(pool);
     pool = pool.slice(0, Math.min(count, pool.length));
 
@@ -882,14 +941,72 @@ function shuffleArray(arr){
   return a;
 }
 
+/* ---- Sozlamalarni eslab qolish (har bir rejim uchun alohida) ---- */
+const SETUP_STORAGE_PREFIX = 'vocaby_setup_';
+function saveSetupPrefs(mode, prefs){
+  try{ localStorage.setItem(SETUP_STORAGE_PREFIX+mode, JSON.stringify(prefs)); }catch(e){}
+}
+function loadSetupPrefs(mode){
+  try{
+    const raw = localStorage.getItem(SETUP_STORAGE_PREFIX+mode);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+
+/* ---- Tugallanmagan mashqni saqlash/davom ettirish ---- */
+const SESSION_STORAGE_PREFIX = 'vocaby_session_';
+function persistSession(mode, session, pendingWord){
+  try{
+    const queueIds = pendingWord ? [pendingWord.id, ...session.queue.map(w=>w.id)] : session.queue.map(w=>w.id);
+    const data = {
+      queueIds,
+      correctCount: session.correctCount,
+      wrongCount: session.wrongCount,
+      wrongWordIds: session.wrongWords.map(w=>w.id),
+      totalOriginal: session.totalOriginal,
+      answeredCount: session.answeredCount,
+    };
+    localStorage.setItem(SESSION_STORAGE_PREFIX+mode, JSON.stringify(data));
+  }catch(e){}
+}
+function clearPersistedSession(mode){
+  localStorage.removeItem(SESSION_STORAGE_PREFIX+mode);
+}
+function loadPersistedSession(mode){
+  try{
+    const raw = localStorage.getItem(SESSION_STORAGE_PREFIX+mode);
+    if(!raw) return null;
+    const data = JSON.parse(raw);
+    const all = allWordsFlat();
+    const byId = id => all.find(w=>w.id===id);
+    const queue = data.queueIds.map(byId).filter(Boolean);
+    const wrongWords = data.wrongWordIds.map(byId).filter(Boolean);
+    if(queue.length === 0) return null;
+    return {
+      queue,
+      current: null,
+      correctCount: data.correctCount,
+      wrongCount: data.wrongCount,
+      wrongWords,
+      totalOriginal: data.totalOriginal,
+      answeredCount: data.answeredCount,
+    };
+  }catch(e){ return null; }
+}
+function resumeSession(mode, session){
+  if(mode === 'flashcard'){ fcSession = session; switchView('flashcard-session'); }
+  else if(mode === 'quiz'){ quizSession = session; switchView('quiz-session'); }
+  else if(mode === 'write'){ writeSession = session; switchView('write-session'); }
+}
+
 function renderFlashcardSetup(){
-  renderSetupView('view-flashcard-setup', '🃏 Flashcard sozlamalari', "Kartochkalarni ko'rib, o'zingizni baholang.", startFlashcardSession);
+  renderSetupView('view-flashcard-setup', '🃏 Flashcard sozlamalari', "Kartochkalarni ko'rib, o'zingizni baholang.", startFlashcardSession, 'flashcard');
 }
 function renderQuizSetup(){
-  renderSetupView('view-quiz-setup', '❓ Quiz sozlamalari', "To'g'ri tarjimani tanlang.", startQuizSession, 4);
+  renderSetupView('view-quiz-setup', '❓ Quiz sozlamalari', "To'g'ri tarjimani tanlang.", startQuizSession, 'quiz', 4);
 }
 function renderWriteSetup(){
-  renderSetupView('view-write-setup', "✍️ Yozib topish sozlamalari", "Berilgan so'zning tarjimasini yozing.", startWriteSession);
+  renderSetupView('view-write-setup', "✍️ Yozib topish sozlamalari", "Berilgan so'zning tarjimasini yozing.", startWriteSession, 'write');
 }
 
 /* ================= GENERIC SESSION ENGINE (retry-siz, bitta o'tish) ================= */
@@ -946,7 +1063,8 @@ function renderFlashcardSession(){
   const el = document.getElementById('view-flashcard-session');
   if(!fcSession){ switchView('flashcard-setup'); return; }
   const word = sessionNext(fcSession);
-  if(!word){ switchView('flashcard-results'); return; }
+  if(!word){ clearPersistedSession('flashcard'); switchView('flashcard-results'); return; }
+  persistSession('flashcard', fcSession, word);
 
   el.innerHTML = `
     <div class="card">
@@ -1034,7 +1152,8 @@ function renderQuizSession(){
   const el = document.getElementById('view-quiz-session');
   if(!quizSession){ switchView('quiz-setup'); return; }
   const word = sessionNext(quizSession);
-  if(!word){ switchView('quiz-results'); return; }
+  if(!word){ clearPersistedSession('quiz'); switchView('quiz-results'); return; }
+  persistSession('quiz', quizSession, word);
 
   const deck = deckOf(word);
   let mates = deck.words.filter(w=>w.id!==word.id);
@@ -1102,7 +1221,8 @@ function renderWriteSession(){
   const el = document.getElementById('view-write-session');
   if(!writeSession){ switchView('write-setup'); return; }
   const word = sessionNext(writeSession);
-  if(!word){ switchView('write-results'); return; }
+  if(!word){ clearPersistedSession('write'); switchView('write-results'); return; }
+  persistSession('write', writeSession, word);
 
   el.innerHTML = `
     <div class="card">
@@ -1235,6 +1355,17 @@ function renderSettings(){
     </div>
 
     <div class="card">
+      <h2>📲 Ilova sifatida o'rnatish</h2>
+      ${isStandalone() ? `<p class="lead">✅ Siz allaqachon ilova sifatida ishlatyapsiz.</p>` :
+        deferredInstallPrompt ? `
+          <p class="lead">Bir bosishda ekranga o'rnating — tezroq ochiladi, alohida ikonka bo'lib turadi.</p>
+          <button class="btn btn-primary" id="settingsInstallBtn">📲 O'rnatish</button>
+        ` : `
+          <p class="lead">Brauzeringiz menyusini (⋮ yoki ⋯ yoki ⬆️) oching va "Bosh ekranga qo'shish"ni tanlang.</p>
+        `}
+    </div>
+
+    <div class="card">
       <h2>Ko'rinish</h2>
       <label class="check-row" style="margin-top:10px;">
         <input type="checkbox" id="darkModeCheck" ${theme==='dark'?'checked':''}> 🌙 Tungi rejim (dark mode)
@@ -1265,6 +1396,25 @@ function renderSettings(){
     </div>
 
     <div class="card">
+      <h2>💬 Taklif va fikringiz</h2>
+      <p class="lead">Ilovani yaxshilashimiz uchun fikringizni to'g'ridan-to'g'ri yozing:</p>
+      <div class="btn-row" style="flex-direction:column;">
+        <a class="btn btn-primary btn-block" href="https://t.me/yuuvsuf" target="_blank" rel="noopener">📩 Telegram: @yuuvsuf</a>
+        <a class="btn btn-ghost btn-block" href="https://instagram.com/yunusovvyusuf" target="_blank" rel="noopener">📸 Instagram: @yunusovvyusuf</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💙 Homiylik (Donat)</h2>
+      <p class="lead">Ilova sizga foydali bo'lsa, rivojlantirishni qo'llab-quvvatlashingiz mumkin.</p>
+      <div class="donate-box">
+        <div class="donate-card-number" id="donateCardNumber">5614 6847 0539 1512</div>
+        <div class="donate-card-name">Uzcard / Payme — Yunusov Yusuf</div>
+      </div>
+      <button class="btn btn-ghost btn-block" id="copyCardBtn" style="margin-top:12px;">📋 Karta raqamini nusxalash</button>
+    </div>
+
+    <div class="card">
       <h2>ℹ️ Ilova haqida</h2>
       <p class="lead">${APP_VERSION} — istalgan tildagi lug'atni oson yodlash uchun.</p>
     </div>
@@ -1277,6 +1427,9 @@ function renderSettings(){
     document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
   });
 
+  const installBtn = document.getElementById('settingsInstallBtn');
+  if(installBtn) installBtn.addEventListener('click', triggerInstallPrompt);
+
   const signInBtn = document.getElementById('settingsSignIn');
   if(signInBtn) signInBtn.addEventListener('click', signInWithGoogle);
   const signOutBtn = document.getElementById('settingsSignOut');
@@ -1287,6 +1440,13 @@ function renderSettings(){
   document.getElementById('importFileInput').addEventListener('change', importBackupFile);
   document.getElementById('clearCacheBtn').addEventListener('click', clearCacheAndReload);
   document.getElementById('resetAllBtn').addEventListener('click', resetEverything);
+
+  document.getElementById('copyCardBtn').addEventListener('click', ()=>{
+    const cardNum = '5614684705391512';
+    navigator.clipboard.writeText(cardNum)
+      .then(()=> toast('Karta raqami nusxalandi ✅'))
+      .catch(()=> toast("Nusxalab bo'lmadi, qo'lda yozib oling"));
+  });
 }
 
 function exportBackup(){
@@ -1387,6 +1547,7 @@ function initTheme(){
   document.body.setAttribute('data-theme', saved);
   document.getElementById('themeToggle').textContent = saved === 'dark' ? '☀️' : '🌙';
 }
+document.getElementById('settingsBtn').addEventListener('click', ()=> switchView('settings'));
 document.getElementById('themeToggle').addEventListener('click', ()=>{
   const current = document.body.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
