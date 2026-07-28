@@ -304,9 +304,20 @@ async function triggerInstallPrompt(){
 function isStandalone(){
   return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
 }
+function isIOS(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
 function installBannerHTML(){
   if(isStandalone()) return '';
   if(localStorage.getItem(STORAGE_INSTALL_DISMISSED) === '1') return '';
+  if(isIOS()){
+    return `
+      <div class="install-banner" id="installBanner">
+        <div class="ib-icon">📲</div>
+        <div class="ib-text"><b>iPhone/iPad'ga o'rnatish:</b> pastdagi <b>Ulashish</b> (⬆️ kvadrat ichida strelka) belgisini bosing → ro'yxatdan <b>"Bosh ekranga qo'shish"</b> (Add to Home Screen)ni tanlang.</div>
+        <button class="ib-close" id="installBannerClose" aria-label="Yopish">✕</button>
+      </div>`;
+  }
   if(deferredInstallPrompt){
     return `
       <div class="install-banner" id="installBanner">
@@ -1357,6 +1368,9 @@ function renderSettings(){
     <div class="card">
       <h2>📲 Ilova sifatida o'rnatish</h2>
       ${isStandalone() ? `<p class="lead">✅ Siz allaqachon ilova sifatida ishlatyapsiz.</p>` :
+        isIOS() ? `
+          <p class="lead"><b>iPhone/iPad:</b> pastdagi <b>Ulashish</b> (⬆️) belgisini bosing → ro'yxatdan <b>"Bosh ekranga qo'shish"</b> (Add to Home Screen)ni tanlang.</p>
+        ` :
         deferredInstallPrompt ? `
           <p class="lead">Bir bosishda ekranga o'rnating — tezroq ochiladi, alohida ikonka bo'lib turadi.</p>
           <button class="btn btn-primary" id="settingsInstallBtn">📲 O'rnatish</button>
@@ -1670,10 +1684,20 @@ function markSynced(uid){
 
 /* ---- Real-vaqtda sinxronlash: boshqa qurilmadagi o'zgarishlarni avtomatik oladi ---- */
 let unsubscribeSnapshot = null;
+function isSessionActive(){
+  const sessionViews = [
+    'flashcard-session','flashcard-results',
+    'quiz-session','quiz-results',
+    'write-session','write-results'
+  ];
+  return sessionViews.includes(state.view);
+}
 function startRealtimeSync(uid){
   if(unsubscribeSnapshot) unsubscribeSnapshot();
   unsubscribeSnapshot = db.collection('users').doc(uid).onSnapshot(snap=>{
     if(!snap.exists) return;
+    if(snap.metadata.hasPendingWrites) return; // bu bizning o'z (hali serverga yetmagan) yozuvimiz
+    if(isSessionActive()) return; // mashq davomida chalkashmasligi uchun e'tiborsiz qoldiramiz
     const cloudDecks = snap.data().decks;
     if(!Array.isArray(cloudDecks)) return;
     if(JSON.stringify(cloudDecks) === JSON.stringify(state.decks)) return; // bu bizning o'z yozuvimiz
