@@ -563,3 +563,20 @@ h2{font-size:24px}
 @keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.65)}100%{box-shadow:0 0 0 14px rgba(255,255,255,0)}}
 .link-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.45);min-height:40px;padding:9px 16px;font-size:14px}
 @media (prefers-reduced-motion:reduce){.btn-scope.pulse{animation:none}}
+
+/* v3.2: tungi rejimda matn ko'rinishi */
+button{color:inherit}
+input,select,textarea{color:var(--ink)}
+::placeholder{color:var(--ink-soft);opacity:.85}
+[data-theme="dark"]{color-scheme:dark}
+.quiz-option{color:var(--ink)}
+.quiz-option.correct,.quiz-option.wrong{color:#fff}
+.quiz-option .opt-key{color:var(--ink)}
+.quiz-option.correct .opt-key,.quiz-option.wrong .opt-key{color:#fff}
+.deck-menu-btn,.exit-btn,.fav{color:var(--ink-soft)}
+.filter-chip,.tab{color:var(--ink-soft)}
+.filter-chip.active,#tabs .tab.active{color:#fff}
+[data-theme="dark"] .filter-chip,[data-theme="dark"] .tab{color:var(--ink)}
+[data-theme="dark"] .filter-chip.active,[data-theme="dark"] #tabs .tab.active{color:#fff}
+@media (max-width:720px){[data-theme="dark"] #tabs .tab.active{color:var(--gold)}}
+[data-theme="dark"] .word-card .tr,[data-theme="dark"] .mode-card p,[data-theme="dark"] .add-deck-option p{color:var(--ink-soft)}
