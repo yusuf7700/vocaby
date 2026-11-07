@@ -245,6 +245,111 @@ document.getElementById('modalOverlay').addEventListener('click', (e)=>{
   if(e.target.id === 'modalOverlay') closeModal();
 });
 
+/* ================= SVG ikonlar ================= */
+const ICONS = {"layers": "<rect x=\"3\" y=\"6\" width=\"14\" height=\"12\" rx=\"2\"/><path d=\"M7 3h12a2 2 0 012 2v10\"/>", "help": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1-1.5 2\"/><path d=\"M12 17h.01\"/>", "pen": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z\"/>", "book": "<path d=\"M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z\"/>", "file": "<path d=\"M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h6\"/>", "link": "<path d=\"M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1\"/>", "check": "<path d=\"M20 6L9 17l-5-5\"/>", "x": "<path d=\"M18 6L6 18M6 6l12 12\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.5 2.9 1-6.1L3.1 9.5l6.1-.9z\"/>", "flame": "<path d=\"M12 3c1 3.5 5 5.5 5 10a5 5 0 01-10 0c0-2 1-3.2 2-4 0 1.8 1 2.5 2 2.5 0-3-1-5 1-8.5z\"/>", "play": "<path d=\"M7 4l13 8-13 8z\"/>", "repeat": "<path d=\"M17 2l4 4-4 4\"/><path d=\"M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4\"/><path d=\"M21 13v2a3 3 0 01-3 3H3\"/>", "home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/>", "alert": "<path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4M12 17h.01\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21a8 8 0 0116 0\"/>", "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/>", "moon": "<path d=\"M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z\"/>", "gear": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1\"/>"};
+function ico(n, cls){
+  return `<svg class="ico ${cls||''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||''}</svg>`;
+}
+function emptyArt(){
+  return `<svg class="art" viewBox="0 0 160 120" aria-hidden="true"><rect x="38" y="30" width="84" height="62" rx="12" fill="var(--gold-soft)" transform="rotate(-8 80 61)"/><rect x="38" y="30" width="84" height="62" rx="12" fill="var(--sand-2)" stroke="var(--border)" transform="rotate(6 80 61)"/><rect x="38" y="30" width="84" height="62" rx="12" fill="var(--card)" stroke="var(--teal)" stroke-width="2"/><path d="M58 52h44M58 64h28" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/><circle cx="124" cy="30" r="9" fill="var(--teal)"/><path d="M124 25v10M119 30h10" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+}
+function ringSVG(pct, size, sw){
+  const r=(size-sw)/2, c=2*Math.PI*r, m=size/2;
+  return `<svg class="ring-svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${m}" cy="${m}" r="${r}" fill="none" stroke="currentColor" stroke-opacity=".2" stroke-width="${sw}"/><circle cx="${m}" cy="${m}" r="${r}" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-Math.min(pct,100)/100)}" transform="rotate(-90 ${m} ${m})"/></svg>`;
+}
+function resultRing(pct){
+  return `<div class="ring ring-lg" style="color:var(--teal)">${ringSVG(pct,132,10)}<span class="ring-txt">${pct}%</span></div>`;
+}
+function confetti(host){
+  if(!host) return;
+  const box = document.createElement('div'); box.className = 'confetti';
+  const cols = ['#6C86F5','#9B7EEA','#4FBE93','#F2A93B','#EF9284'];
+  for(let i=0;i<34;i++){
+    const s = document.createElement('i');
+    s.style.cssText = `left:${Math.random()*100}%;background:${cols[i%5]};animation-delay:${Math.random()*0.6}s;animation-duration:${1.8+Math.random()*1.4}s;`;
+    box.appendChild(s);
+  }
+  host.appendChild(box); setTimeout(()=>box.remove(), 4000);
+}
+
+/* ================= Aqlli takrorlash (Leitner qutilari) ================= */
+const SRS_STEPS = [0,1,3,7,14,30];   // quti -> necha kundan keyin takrorlash
+const DAILY_GOAL = 20, DAILY_NEW = 10, MAX_DUE = 30;
+function addDays(key, n){
+  const d = new Date(key+'T12:00:00Z'); d.setUTCDate(d.getUTCDate()+n);
+  return d.toISOString().slice(0,10);
+}
+function srsOf(w){
+  if(w.srs) return w.srs;
+  if(w.status==='known') return { box:2, due: addDays((w.stats&&w.stats.lastReviewed)||todayKey(), SRS_STEPS[2]) };
+  if(w.status==='unknown') return { box:0, due: todayKey() };
+  return null;   // yangi so'z
+}
+function srsUpdate(w, ok){
+  const b = srsOf(w) || { box:0 };
+  const box = ok ? Math.min(b.box+1, 5) : 0;
+  w.srs = { box, due: addDays(todayKey(), SRS_STEPS[box]) };
+}
+function srsCounts(){
+  const t = todayKey(), due = [], fresh = [];
+  allWordsFlat().forEach(w=>{
+    const s = srsOf(w);
+    if(!s) fresh.push(w); else if(s.due <= t) due.push(w);
+  });
+  return { due, fresh };
+}
+function buildDailyPool(){
+  const { due, fresh } = srsCounts();
+  const lg = loadLog()[todayKey()];
+  const newLeft = Math.max(0, DAILY_NEW - (lg ? lg.newCount : 0));
+  due.sort((a,b)=> srsOf(a).box - srsOf(b).box);
+  return shuffleArray(due.slice(0, MAX_DUE).concat(fresh.slice(0, newLeft)));
+}
+function startDaily(mode){
+  const pool = buildDailyPool();
+  if(!pool.length){ toast("Bugun takrorlash kerak emas — ajoyib!"); return; }
+  if(mode==='quiz'){
+    if(allWordsFlat().length < 4){ toast("Quiz uchun kamida 4 ta so'z kerak"); return; }
+    startQuizSession(pool);
+  } else if(mode==='write') startWriteSession(pool);
+  else startFlashcardSession(pool);
+}
+function calcStreak(log){
+  let s = 0;
+  for(let i=0;i<365;i++){
+    const k = addDays(todayKey(), -i);
+    if((log[k] && log[k].totalCount) || 0) s++; else if(i>0) break;
+  }
+  return s;
+}
+function homeHeroHTML(){
+  const log = loadLog(), t = log[todayKey()] || { totalCount:0, newCount:0 };
+  const { due, fresh } = srsCounts();
+  const nDue = Math.min(due.length, MAX_DUE);
+  const nNew = Math.min(fresh.length, Math.max(0, DAILY_NEW - (t.newCount||0)));
+  const total = nDue + nNew;
+  const pct = Math.min(100, Math.round(((t.totalCount||0)/DAILY_GOAL)*100));
+  const hr = new Date().getHours();
+  const greet = hr<5 ? 'Xayrli tun' : hr<12 ? 'Xayrli tong' : hr<18 ? 'Xayrli kun' : 'Xayrli kech';
+  const fut = allWordsFlat().map(w=>srsOf(w)).filter(Boolean).map(s=>s.due).filter(d=>d>todayKey()).sort()[0];
+  const nextTxt = fut ? (fut===addDays(todayKey(),1) ? 'Keyingi takrorlash: ertaga' : 'Keyingi takrorlash: '+fut.slice(5)) : '';
+  return `<div class="card hero">
+    <div class="hero-top">
+      <div><p class="hero-greet">${greet}</p><h1>Bugungi mashq</h1></div>
+      <div class="streak-pill">${ico('flame')}<b>${calcStreak(log)}</b> kun</div>
+    </div>
+    <div class="hero-body">
+      <div class="ring">${ringSVG(pct,104,9)}<span class="ring-txt">${pct}%</span></div>
+      <div class="hero-info">
+        ${total ? `<div class="hero-num">${total}</div><div class="hero-lbl">ta so'z kutmoqda</div><div class="hero-sub">${nDue} takrorlash · ${nNew} yangi</div>`
+                : `<div class="hero-num">${ico('check')}</div><div class="hero-lbl">Bugungi reja bajarildi</div><div class="hero-sub">${nextTxt}</div>`}
+      </div>
+    </div>
+    ${total ? `<button class="btn btn-hero btn-block" data-daily="flashcard">${ico('play')} Boshlash</button>
+    <div class="hero-alt"><span>Boshqacha:</span><button class="link-btn" data-daily="quiz">Quiz</button><button class="link-btn" data-daily="write">Yozib topish</button></div>` : ''}
+  </div>`;
+}
+
 /* ================= Klaviatura va qulaylik ================= */
 document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape'){ closeModal(); return; }
@@ -376,27 +481,28 @@ function renderHome(){
   const totalWords = allWordsFlat().length;
 
   el.innerHTML = `
+    ${totalWords>0 ? homeHeroHTML() : ''}
     ${installBannerHTML()}
 
     ${state.decks.length ? `<div class="card">
-      <h1>Lug'atlarim 📚</h1>
+      <h1>Lug'atlarim</h1>
       <p class="lead">${state.decks.length} ta lug'at, ${totalWords} ta so'z</p>
       <div class="deck-grid">
         ${state.decks.map(d => deckCardHTML(d)).join('')}
       </div>
     </div>` : `<div class="card">
-      <h1>Assalomu alaykum! 👋</h1>
+      <h1>Assalomu alaykum!</h1>
       <p class="lead">Istalgan tildagi lug'atni oson va zavqli tarzda yodlang. Birinchi lug'atingizni qo'shishdan boshlaymiz.</p>
     </div>`}
 
     ${totalWords>0 ? `<div class="card">
-      <h2>Mashqni boshlash</h2>
-      <p class="lead" style="margin-bottom:14px;">Qaysi mashq turi bilan ishlaysiz?</p>
+      <h2>Erkin mashq</h2>
+      <p class="lead" style="margin-bottom:14px;">O'zingiz tanlagan lug'atlar bilan mashq qiling.</p>
       <div class="mode-grid">
-        <div class="mode-card" role="button" tabindex="0" data-go="flashcard-setup"><span class="icon">🃏</span><h3>Flashcard</h3><p>Kartochkalarni ag'darib yodlang</p></div>
-        <div class="mode-card" role="button" tabindex="0" data-go="quiz-setup"><span class="icon">❓</span><h3>Quiz</h3><p>To'g'ri javobni tanlang</p></div>
-        <div class="mode-card" role="button" tabindex="0" data-go="write-setup"><span class="icon">✍️</span><h3>Yozib topish</h3><p>Tarjimasini yozing</p></div>
-        <div class="mode-card" role="button" tabindex="0" data-go="dictionary"><span class="icon">📖</span><h3>Lug'at</h3><p>Barcha so'zlarni ko'ring</p></div>
+        <div class="mode-card" role="button" tabindex="0" data-go="flashcard-setup"><span class="icon">${ico('layers')}</span><h3>Flashcard</h3><p>Kartochkalarni ag'darib yodlang</p></div>
+        <div class="mode-card" role="button" tabindex="0" data-go="quiz-setup"><span class="icon">${ico('help')}</span><h3>Quiz</h3><p>To'g'ri javobni tanlang</p></div>
+        <div class="mode-card" role="button" tabindex="0" data-go="write-setup"><span class="icon">${ico('pen')}</span><h3>Yozib topish</h3><p>Tarjimasini yozing</p></div>
+        <div class="mode-card" role="button" tabindex="0" data-go="dictionary"><span class="icon">${ico('book')}</span><h3>Lug'at</h3><p>Barcha so'zlarni ko'ring</p></div>
       </div>
     </div>` : ''}
     <div class="card">
@@ -404,18 +510,18 @@ function renderHome(){
       <p class="lead">CSV fayl, Google Sheets havolasi yoki o'zingiz qo'lda yozing. Arabcha bo'lishi shart emas — istalgan til juftligi (masalan ingliz-rus, ispan-o'zbek va h.k.) mos keladi.</p>
       <div class="add-deck-grid">
         <div class="add-deck-option" role="button" tabindex="0" id="uploadZone">
-          <span class="icon">📄</span>
+          <span class="icon">${ico('file')}</span>
           <h3>CSV fayl</h3>
           <p>Bosing yoki faylni tashlang</p>
           <input type="file" id="csvInput" accept=".csv" style="display:none;">
         </div>
         <div class="add-deck-option" role="button" tabindex="0" id="sheetsZone">
-          <span class="icon">🔗</span>
+          <span class="icon">${ico('link')}</span>
           <h3>Google Sheets</h3>
           <p>Ommaga ochiq havola</p>
         </div>
         <div class="add-deck-option" role="button" tabindex="0" id="manualZone">
-          <span class="icon">✍️</span>
+          <span class="icon">${ico('pen')}</span>
           <h3>Qo'lda yozish</h3>
           <p>O'zingiz so'z qo'shing</p>
         </div>
@@ -427,6 +533,7 @@ function renderHome(){
   `;
 
   bindInstallBanner(el);
+  el.querySelectorAll('[data-daily]').forEach(b=>b.addEventListener('click', ()=> startDaily(b.dataset.daily)));
 
   el.querySelectorAll('.deck-card').forEach(card=>{
     card.addEventListener('click', (e)=>{
@@ -779,15 +886,15 @@ function renderDictionary(){
       <div class="dict-toolbar">
         <input type="text" id="dictSearch" placeholder="Qidirish..." value="${escapeHTML(state.dictSearch)}">
         <button class="filter-chip ${state.dictStatusFilter==='all'?'active':''}" data-f="all">Hammasi</button>
-        <button class="filter-chip ${state.dictStatusFilter==='known'?'active':''}" data-f="known">🟢 Bilaman</button>
-        <button class="filter-chip ${state.dictStatusFilter==='unknown'?'active':''}" data-f="unknown">🔴 Bilmayman</button>
-        <button class="filter-chip ${state.dictStatusFilter==='favorite'?'active':''}" data-f="favorite">⭐ Sevimli</button>
+        <button class="filter-chip ${state.dictStatusFilter==='known'?'active':''}" data-f="known">${ico('check','ok')} Bilaman</button>
+        <button class="filter-chip ${state.dictStatusFilter==='unknown'?'active':''}" data-f="unknown">${ico('x','bad')} Bilmayman</button>
+        <button class="filter-chip ${state.dictStatusFilter==='favorite'?'active':''}" data-f="favorite">${ico('star')} Sevimli</button>
       </div>
       <div class="word-grid">
         ${list.map(w => `
           <div class="word-card">
             ${state.dictDeckFilter==='all' ? `<div class="deck-badge">${escapeHTML(deckOf(w)?.name||'')}</div>` : ''}
-            <button class="fav ${w.favorite?'active':''}" data-fav="${w.id}" style="${state.dictDeckFilter==='all'?'top:38px;':''}">${w.favorite?'⭐':'☆'}</button>
+            <button class="fav ${w.favorite?'active':''}" data-fav="${w.id}" style="${state.dictDeckFilter==='all'?'top:38px;':''}">${ico('star', w.favorite?'filled':'')}</button>
             <div class="status-dot status-${w.status}"></div>
             <div class="card-term ${langClass(frontOf(w))}" style="${state.dictDeckFilter==='all'?'margin-top:14px;':''}">${escapeHTML(frontOf(w))}</div>
             <div class="tr">${escapeHTML(backOf(w))}</div>
@@ -815,7 +922,7 @@ function renderDictionary(){
 }
 function emptyStateHTML(){
   return `<div class="card empty-state">
-    <div class="icon">📭</div>
+    ${emptyArt()}
     <h2>Hali lug'at yo'q</h2>
     <p class="lead">Boshlash uchun CSV fayl yuklang, Google Sheets ulang yoki qo'lda yozing.</p>
     <button class="btn btn-primary" id="emptyGoHome">Bosh sahifaga o'tish</button>
@@ -836,7 +943,7 @@ function renderSetupView(viewId, title, desc, onStart, mode, minWordsRequired){
   }
   if(minWordsRequired && allWordsFlat().length < minWordsRequired){
     el.innerHTML = `<div class="card empty-state">
-      <div class="icon">⚠️</div>
+      <div class="icon">${ico('alert','big')}</div>
       <h2>Yetarli so'z yo'q</h2>
       <p class="lead">Bu mashq uchun kamida ${minWordsRequired} ta so'z kerak. Hozircha ${allWordsFlat().length} ta bor.</p>
       <button class="btn btn-primary" id="emptyGoHome">Bosh sahifaga o'tish</button>
@@ -855,11 +962,11 @@ function renderSetupView(viewId, title, desc, onStart, mode, minWordsRequired){
   const resumeData = loadPersistedSession(mode);
   const resumeBannerHTML = (resumeData && resumeData.queue.length > 0) ? `
     <div class="card" style="border:1.5px solid var(--teal);">
-      <h2>⏸️ Tugallanmagan mashq bor</h2>
+      <h2>Tugallanmagan mashq bor</h2>
       <p class="lead">${resumeData.answeredCount} / ${resumeData.totalOriginal} ta so'z javob berilgan. Davom etasizmi?</p>
       <div class="btn-row" style="flex-direction:column;">
-        <button class="btn btn-primary btn-block" id="resumeBtn">▶️ Davom ettirish</button>
-        <button class="btn btn-outline btn-block" id="discardResumeBtn">🔁 Qaytadan boshlash</button>
+        <button class="btn btn-primary btn-block" id="resumeBtn">${ico('play')} Davom ettirish</button>
+        <button class="btn btn-outline btn-block" id="discardResumeBtn">${ico('repeat')} Qaytadan boshlash</button>
       </div>
     </div>
   ` : '';
@@ -908,7 +1015,7 @@ function renderSetupView(viewId, title, desc, onStart, mode, minWordsRequired){
         <label class="check-row"><input type="checkbox" id="shuffleOpt" ${(!prefs||prefs.shuffle!==false)?'checked':''}> So'zlarni tasodifiy tartibda chiqarish</label>
       </div>
 
-      <button class="btn btn-primary btn-block" id="startBtn">Mashqni boshlash 🚀</button>
+      <button class="btn btn-primary btn-block" id="startBtn">Mashqni boshlash</button>
     </div>
   `;
 
@@ -1037,13 +1144,13 @@ function resumeSession(mode, session){
 }
 
 function renderFlashcardSetup(){
-  renderSetupView('view-flashcard-setup', '🃏 Flashcard sozlamalari', "Kartochkalarni ko'rib, o'zingizni baholang.", startFlashcardSession, 'flashcard');
+  renderSetupView('view-flashcard-setup', 'Flashcard sozlamalari', "Kartochkalarni ko'rib, o'zingizni baholang.", startFlashcardSession, 'flashcard');
 }
 function renderQuizSetup(){
-  renderSetupView('view-quiz-setup', '❓ Quiz sozlamalari', "To'g'ri tarjimani tanlang.", startQuizSession, 'quiz', 4);
+  renderSetupView('view-quiz-setup', 'Quiz sozlamalari', "To'g'ri tarjimani tanlang.", startQuizSession, 'quiz', 4);
 }
 function renderWriteSetup(){
-  renderSetupView('view-write-setup', "✍️ Yozib topish sozlamalari", "Berilgan so'zning tarjimasini yozing.", startWriteSession, 'write');
+  renderSetupView('view-write-setup', "Yozib topish sozlamalari", "Berilgan so'zning tarjimasini yozing.", startWriteSession, 'write');
 }
 
 /* ================= GENERIC SESSION ENGINE (retry-siz, bitta o'tish) ================= */
@@ -1074,6 +1181,7 @@ function sessionJudge(session, word, isCorrect){
 }
 function updateWordStatus(word, isCorrect){
   const wasNew = word.status === 'new';
+  srsUpdate(word, isCorrect);
   word.status = isCorrect ? 'known' : 'unknown';
   word.stats.lastReviewed = todayKey();
   if(isCorrect) word.stats.correct++; else word.stats.wrong++;
@@ -1125,12 +1233,12 @@ function renderFlashcardSession(){
       </div>
 
       <div class="judge-row">
-        <button class="judge-btn judge-unknown" id="judgeUnknown">🔴 Bilmadim</button>
-        <button class="judge-btn judge-known" id="judgeKnown">🟢 Bildim</button>
+        <button class="judge-btn judge-unknown" id="judgeUnknown">${ico('x')} Bilmadim</button>
+        <button class="judge-btn judge-known" id="judgeKnown">${ico('check')} Bildim</button>
       </div>
       <div class="session-scoreboard">
-        <span class="badge-known">🟢 Bildim: ${fcSession.correctCount}</span>
-        <span class="badge-unknown">🔴 Bilmadim: ${fcSession.wrongCount}</span>
+        <span class="badge-known">${ico('check','ok')} Bildim: ${fcSession.correctCount}</span>
+        <span class="badge-unknown">${ico('x','bad')} Bilmadim: ${fcSession.wrongCount}</span>
       </div>
     </div>
   `;
@@ -1157,24 +1265,27 @@ function renderGenericResults(viewId, session, actions){
   const el = document.getElementById(viewId);
   const total = session.totalOriginal;
   const pct = total ? Math.round((session.correctCount/total)*100) : 0;
-  const emoji = pct>=80?'🎉':pct>=50?'👍':'💪';
+  const resTitle = pct>=80 ? 'Ajoyib natija!' : pct>=50 ? 'Yaxshi, davom eting!' : 'Mashq qilishda davom eting';
+  let bestMsg = '';
+  try{ const bk='vocaby_best_'+viewId, prev=Number(localStorage.getItem(bk)||0);
+    if(pct>prev){ localStorage.setItem(bk,pct); if(prev>0) bestMsg=' · <b class="rec">Yangi rekord!</b>'; } }catch(e){}
   el.innerHTML = `
     <div class="card">
-      <div class="results-emoji">${emoji}</div>
-      <h1 style="text-align:center;">Mashq tugadi!</h1>
-      <p class="lead" style="text-align:center;">Umumiy: ${total} ta</p>
-      <div class="results-percent">${pct}%</div>
+      ${resultRing(pct)}
+      <h1 style="text-align:center;">${resTitle}</h1>
+      <p class="lead" style="text-align:center;">Umumiy: ${total} ta${bestMsg}</p>
       <div class="stats-grid">
-        <div class="stat-box"><div class="num" style="color:var(--emerald);">${session.correctCount}</div><div class="label">🟢 Bildim</div></div>
-        <div class="stat-box"><div class="num" style="color:var(--coral);">${session.wrongCount}</div><div class="label">🔴 Bilmadim</div></div>
+        <div class="stat-box"><div class="num" style="color:var(--emerald);">${session.correctCount}</div><div class="label">${ico('check','ok')} Bildim</div></div>
+        <div class="stat-box"><div class="num" style="color:var(--coral);">${session.wrongCount}</div><div class="label">${ico('x','bad')} Bilmadim</div></div>
       </div>
       <div class="btn-row" style="margin-top:22px;flex-direction:column;">
-        <button class="btn btn-primary btn-block" id="btnRestart">🔁 Qayta boshlash</button>
-        <button class="btn btn-danger btn-block" id="btnRetryWrong">🔴 Faqat bilmaganlarni qayta ishlash</button>
-        <button class="btn btn-outline btn-block" id="btnHome">🏠 Bosh sahifa</button>
+        <button class="btn btn-primary btn-block" id="btnRestart">${ico('repeat')} Qayta boshlash</button>
+        <button class="btn btn-danger btn-block" id="btnRetryWrong">${ico('x')} Faqat bilmaganlarni qayta ishlash</button>
+        <button class="btn btn-outline btn-block" id="btnHome">${ico('home')} Bosh sahifa</button>
       </div>
     </div>
   `;
+  if(pct>=80) confetti(el.querySelector('.card'));
   el.querySelector('#btnRestart').addEventListener('click', actions.restart);
   el.querySelector('#btnRetryWrong').addEventListener('click', actions.retryWrong);
   el.querySelector('#btnHome').addEventListener('click', ()=> switchView('home'));
@@ -1215,8 +1326,8 @@ function renderQuizSession(){
         ${options.map((o,i)=>`<button class="quiz-option" data-id="${o.id}"><span class="opt-key">${i+1}</span><span>${escapeHTML(backOf(o))}</span></button>`).join('')}
       </div>
       <div class="session-scoreboard">
-        <span class="badge-known">🟢 To'g'ri: ${quizSession.correctCount}</span>
-        <span class="badge-unknown">🔴 Xato: ${quizSession.wrongCount}</span>
+        <span class="badge-known">${ico('check','ok')} To'g'ri: ${quizSession.correctCount}</span>
+        <span class="badge-unknown">${ico('x','bad')} Xato: ${quizSession.wrongCount}</span>
       </div>
     </div>
   `;
@@ -1274,11 +1385,11 @@ function renderWriteSession(){
       <input type="text" class="write-input" id="writeAnswer" placeholder="Javobingiz..." autocomplete="off">
       <div class="write-feedback" id="writeFeedback"></div>
       <div class="btn-row" style="margin-top:16px;">
-        <button class="btn btn-primary btn-block" id="checkBtn">Tekshirish ✅</button>
+        <button class="btn btn-primary btn-block" id="checkBtn">Tekshirish</button>
       </div>
       <div class="session-scoreboard">
-        <span class="badge-known">🟢 To'g'ri: ${writeSession.correctCount}</span>
-        <span class="badge-unknown">🔴 Xato: ${writeSession.wrongCount}</span>
+        <span class="badge-known">${ico('check','ok')} To'g'ri: ${writeSession.correctCount}</span>
+        <span class="badge-unknown">${ico('x','bad')} Xato: ${writeSession.wrongCount}</span>
       </div>
     </div>
   `;
@@ -1346,6 +1457,17 @@ function renderStats(){
     const d = new Date(); d.setDate(d.getDate()-i);
     if((log[d.toISOString().slice(0,10)]?.totalCount)||0) streak++; else if(i>0) break;
   }
+  const hm = [], st = new Date(); st.setDate(st.getDate()-83);
+  for(let i=0;i<(st.getDay()+6)%7;i++) hm.push('<i class="hm-c pad"></i>');
+  for(let i=0;i<84;i++){
+    const d = new Date(st); d.setDate(st.getDate()+i);
+    const k = d.toISOString().slice(0,10), c = (log[k]&&log[k].totalCount)||0;
+    hm.push(`<i class="hm-c l${c===0?0:c<5?1:c<15?2:c<30?3:4}" title="${k}: ${c} ta"></i>`);
+  }
+  const deckRows = state.decks.map(d=>{
+    const k = d.words.filter(w=>w.status==='known').length, p = d.words.length ? Math.round(k/d.words.length*100) : 0;
+    return `<div class="deck-prog"><div class="dp-top"><span>${escapeHTML(d.name)}</span><b>${k}/${d.words.length}</b></div><div class="progress-bar-track"><div class="progress-bar-fill" style="width:${p}%"></div></div></div>`;
+  }).join('');
 
   el.innerHTML = `
     <div class="card">
@@ -1354,16 +1476,16 @@ function renderStats(){
       <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
       <div class="stats-grid">
         <div class="stat-box"><div class="num">${total}</div><div class="label">Jami so'z</div></div>
-        <div class="stat-box"><div class="num" style="color:var(--emerald);">${known}</div><div class="label">🟢 Bilaman</div></div>
-        <div class="stat-box"><div class="num" style="color:var(--coral);">${unknown}</div><div class="label">🔴 Bilmayman</div></div>
-        <div class="stat-box"><div class="num">${neu}</div><div class="label">⚪ Yangi</div></div>
+        <div class="stat-box"><div class="num" style="color:var(--emerald);">${known}</div><div class="label">${ico('check','ok')} Bilaman</div></div>
+        <div class="stat-box"><div class="num" style="color:var(--coral);">${unknown}</div><div class="label">${ico('x','bad')} Bilmayman</div></div>
+        <div class="stat-box"><div class="num">${neu}</div><div class="label">Yangi</div></div>
       </div>
     </div>
 
     <div class="card">
       <h2>Bugun</h2>
       <div class="stats-grid">
-        <div class="stat-box"><div class="num">🔥 ${streak}</div><div class="label">Ketma-ket kun</div></div>
+        <div class="stat-box"><div class="num">${ico('flame','ok')} ${streak}</div><div class="label">Ketma-ket kun</div></div>
         <div class="stat-box"><div class="num">${today.newCount}</div><div class="label">Yangi</div></div>
         <div class="stat-box"><div class="num">${today.reviewedCount}</div><div class="label">Takrorlandi</div></div>
         <div class="stat-box"><div class="num">${acc}%</div><div class="label">To'g'ri</div></div>
@@ -1371,15 +1493,12 @@ function renderStats(){
     </div>
 
     <div class="card">
-      <h2>Oxirgi 7 kun</h2>
-      <div style="display:flex;align-items:flex-end;gap:8px;height:120px;margin-top:16px;">
-        ${days.map(d=>`
-          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
-            <div style="width:100%;background:var(--grad-primary);border-radius:8px 8px 4px 4px;height:${Math.max(6,(d.count/maxCount)*90)}px;"></div>
-            <div style="font-size:11px;color:var(--ink-soft);">${d.k.slice(5)}</div>
-          </div>
-        `).join('')}
-      </div>
+      <h2>Faollik (12 hafta)</h2>
+      <div class="heatmap">${hm.join('')}</div>
+    </div>
+    <div class="card">
+      <h2>Lug'atlar bo'yicha</h2>
+      ${deckRows}
     </div>
   `;
 }
@@ -1471,7 +1590,7 @@ function renderSettings(){
     const next = e.target.checked ? 'dark' : 'light';
     document.body.setAttribute('data-theme', next);
     localStorage.setItem(STORAGE_THEME, next);
-    document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+    document.getElementById('themeToggle').innerHTML = ico(next === 'dark' ? 'sun' : 'moon');
   });
 
   const installBtn = document.getElementById('settingsInstallBtn');
@@ -1592,7 +1711,7 @@ function resetEverything(){
 function initTheme(){
   const saved = localStorage.getItem(STORAGE_THEME) || 'light';
   document.body.setAttribute('data-theme', saved);
-  document.getElementById('themeToggle').textContent = saved === 'dark' ? '☀️' : '🌙';
+  document.getElementById('themeToggle').innerHTML = ico(saved === 'dark' ? 'sun' : 'moon');
 }
 document.getElementById('settingsBtn').addEventListener('click', ()=> switchView('settings'));
 document.getElementById('themeToggle').addEventListener('click', ()=>{
@@ -1600,7 +1719,7 @@ document.getElementById('themeToggle').addEventListener('click', ()=>{
   const next = current === 'dark' ? 'light' : 'dark';
   document.body.setAttribute('data-theme', next);
   localStorage.setItem(STORAGE_THEME, next);
-  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+  document.getElementById('themeToggle').innerHTML = ico(next === 'dark' ? 'sun' : 'moon');
 });
 
 /* ================= AUTH & BULUTGA SINXRONLASH (Firebase) ================= */
@@ -1635,7 +1754,7 @@ function renderAuthUI(){
     btn.onclick = ()=> openAccountModal();
   } else {
     btn.className = 'auth-btn';
-    btn.innerHTML = `🔐 Kirish`;
+    btn.innerHTML = `${ico('user')} Kirish`;
     btn.title = '';
     btn.onclick = ()=> signInWithGoogle();
   }
