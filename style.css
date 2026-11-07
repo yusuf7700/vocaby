@@ -542,3 +542,7 @@ h2{font-size:24px}
 .deck-prog{margin-top:14px}.dp-top{display:flex;justify-content:space-between;font-size:14px;font-weight:600}
 .dp-top b{color:var(--ink-soft);font-weight:700}
 @media (max-width:480px){.hero-num{font-size:44px}.ring svg{width:88px;height:88px}}
+
+.hero-scope{display:flex;justify-content:center;margin-top:14px;position:relative;z-index:1}
+.hero-scope .ico{width:15px;height:15px}
+.dp-select{width:100%;padding:13px 14px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--ink);font-size:16px}

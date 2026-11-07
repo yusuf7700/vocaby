@@ -290,20 +290,54 @@ function srsUpdate(w, ok){
   const box = ok ? Math.min(b.box+1, 5) : 0;
   w.srs = { box, due: addDays(todayKey(), SRS_STEPS[box]) };
 }
+function dailyPrefs(){
+  let p = {};
+  try{ p = JSON.parse(localStorage.getItem('vocaby_daily_prefs')||'{}'); }catch(e){}
+  const ids = Array.isArray(p.deckIds) ? p.deckIds.filter(id=>findDeck(id)) : [];
+  return { deckIds: ids.length ? ids : null,
+           newLimit: Number.isInteger(p.newLimit) ? p.newLimit : DAILY_NEW,
+           dueLimit: Number.isInteger(p.dueLimit) ? p.dueLimit : MAX_DUE };
+}
+function openDailySettings(){
+  const P = dailyPrefs();
+  const opts = (arr, cur)=> arr.map(n=>`<option value="${n}" ${n===cur?'selected':''}>${n}</option>`).join('');
+  openModal(`
+    <h2>Bugungi mashq sozlamalari</h2>
+    <div class="option-group"><label class="group-label">Qaysi lug'atlardan o'rganasiz?</label>
+      <div class="deck-select-list">${state.decks.map(d=>`<label class="check-row"><input type="checkbox" class="dpDeck" value="${d.id}" ${(!P.deckIds||P.deckIds.includes(d.id))?'checked':''}> ${escapeHTML(d.name)} (${d.words.length})</label>`).join('')}</div>
+    </div>
+    <div class="option-group"><label class="group-label">Kuniga yangi so'zlar</label>
+      <select id="dpNew" class="dp-select">${opts([0,3,5,10,15,20,30], P.newLimit)}</select></div>
+    <div class="option-group"><label class="group-label">Kuniga ko'pi bilan takrorlash</label>
+      <select id="dpDue" class="dp-select">${opts([10,20,30,50,100], P.dueLimit)}</select></div>
+    <div class="btn-row"><button class="btn btn-primary" id="dpSave" style="flex:1">Saqlash</button><button class="btn btn-outline" id="dpCancel">Bekor</button></div>`);
+  document.getElementById('dpCancel').onclick = closeModal;
+  document.getElementById('dpSave').onclick = ()=>{
+    const ids = Array.from(document.querySelectorAll('.dpDeck:checked')).map(c=>c.value);
+    if(!ids.length){ toast("Kamida bitta lug'at tanlang"); return; }
+    localStorage.setItem('vocaby_daily_prefs', JSON.stringify({
+      deckIds: ids.length === state.decks.length ? null : ids,
+      newLimit: parseInt(document.getElementById('dpNew').value),
+      dueLimit: parseInt(document.getElementById('dpDue').value) }));
+    closeModal(); renderHome();
+  };
+}
 function srsCounts(){
   const t = todayKey(), due = [], fresh = [];
-  allWordsFlat().forEach(w=>{
+  const P = dailyPrefs();
+  allWordsFlat().filter(w=>!P.deckIds || P.deckIds.includes(w.deckId)).forEach(w=>{
     const s = srsOf(w);
     if(!s) fresh.push(w); else if(s.due <= t) due.push(w);
   });
   return { due, fresh };
 }
 function buildDailyPool(){
+  const P = dailyPrefs();
   const { due, fresh } = srsCounts();
   const lg = loadLog()[todayKey()];
-  const newLeft = Math.max(0, DAILY_NEW - (lg ? lg.newCount : 0));
+  const newLeft = Math.max(0, P.newLimit - (lg ? lg.newCount : 0));
   due.sort((a,b)=> srsOf(a).box - srsOf(b).box);
-  return shuffleArray(due.slice(0, MAX_DUE).concat(fresh.slice(0, newLeft)));
+  return shuffleArray(due.slice(0, P.dueLimit).concat(fresh.slice(0, newLeft)));
 }
 function startDaily(mode){
   const pool = buildDailyPool();
@@ -325,8 +359,9 @@ function calcStreak(log){
 function homeHeroHTML(){
   const log = loadLog(), t = log[todayKey()] || { totalCount:0, newCount:0 };
   const { due, fresh } = srsCounts();
-  const nDue = Math.min(due.length, MAX_DUE);
-  const nNew = Math.min(fresh.length, Math.max(0, DAILY_NEW - (t.newCount||0)));
+  const P = dailyPrefs();
+  const nDue = Math.min(due.length, P.dueLimit);
+  const nNew = Math.min(fresh.length, Math.max(0, P.newLimit - (t.newCount||0)));
   const total = nDue + nNew;
   const pct = Math.min(100, Math.round(((t.totalCount||0)/DAILY_GOAL)*100));
   const hr = new Date().getHours();
@@ -347,6 +382,7 @@ function homeHeroHTML(){
     </div>
     ${total ? `<button class="btn btn-hero btn-block" data-daily="flashcard">${ico('play')} Boshlash</button>
     <div class="hero-alt"><span>Boshqacha:</span><button class="link-btn" data-daily="quiz">Quiz</button><button class="link-btn" data-daily="write">Yozib topish</button></div>` : ''}
+    <div class="hero-scope"><button class="link-btn" data-daily-settings>${ico('gear')} ${P.deckIds ? P.deckIds.length+" ta lug'at tanlangan" : "Barcha lug'atlar"} · sozlash</button></div>
   </div>`;
 }
 
@@ -534,6 +570,7 @@ function renderHome(){
 
   bindInstallBanner(el);
   el.querySelectorAll('[data-daily]').forEach(b=>b.addEventListener('click', ()=> startDaily(b.dataset.daily)));
+  el.querySelectorAll('[data-daily-settings]').forEach(b=>b.addEventListener('click', openDailySettings));
 
   el.querySelectorAll('.deck-card').forEach(card=>{
     card.addEventListener('click', (e)=>{
