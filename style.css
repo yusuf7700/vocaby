@@ -580,3 +580,10 @@ input,select,textarea{color:var(--ink)}
 [data-theme="dark"] .filter-chip.active,[data-theme="dark"] #tabs .tab.active{color:#fff}
 @media (max-width:720px){[data-theme="dark"] #tabs .tab.active{color:var(--gold)}}
 [data-theme="dark"] .word-card .tr,[data-theme="dark"] .mode-card p,[data-theme="dark"] .add-deck-option p{color:var(--ink-soft)}
+
+/* v3.3: yo'nalishni tez almashtirish */
+.dir-row{display:flex;justify-content:center;margin:14px 0 4px}
+.dir-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:9px 18px;border-radius:999px;border:1.5px solid var(--teal);background:var(--grad-soft);color:var(--teal-deep);font-weight:700;font-size:14px;cursor:pointer;transition:transform .15s ease}
+.dir-btn:active{transform:scale(.96)}
+.dir-btn .ico{width:18px;height:18px}
+[data-theme="dark"] .dir-btn{color:var(--gold);border-color:var(--gold)}

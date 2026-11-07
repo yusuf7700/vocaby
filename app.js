@@ -246,7 +246,7 @@ document.getElementById('modalOverlay').addEventListener('click', (e)=>{
 });
 
 /* ================= SVG ikonlar ================= */
-const ICONS = {"layers": "<rect x=\"3\" y=\"6\" width=\"14\" height=\"12\" rx=\"2\"/><path d=\"M7 3h12a2 2 0 012 2v10\"/>", "help": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1-1.5 2\"/><path d=\"M12 17h.01\"/>", "pen": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z\"/>", "book": "<path d=\"M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z\"/>", "file": "<path d=\"M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h6\"/>", "link": "<path d=\"M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1\"/>", "check": "<path d=\"M20 6L9 17l-5-5\"/>", "x": "<path d=\"M18 6L6 18M6 6l12 12\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.5 2.9 1-6.1L3.1 9.5l6.1-.9z\"/>", "flame": "<path d=\"M12 3c1 3.5 5 5.5 5 10a5 5 0 01-10 0c0-2 1-3.2 2-4 0 1.8 1 2.5 2 2.5 0-3-1-5 1-8.5z\"/>", "play": "<path d=\"M7 4l13 8-13 8z\"/>", "repeat": "<path d=\"M17 2l4 4-4 4\"/><path d=\"M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4\"/><path d=\"M21 13v2a3 3 0 01-3 3H3\"/>", "home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/>", "alert": "<path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4M12 17h.01\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21a8 8 0 0116 0\"/>", "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/>", "moon": "<path d=\"M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z\"/>", "gear": "<path d=\"M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "chev": "<path d=\"M9 6l6 6-6 6\"/>"};
+const ICONS = {"layers": "<rect x=\"3\" y=\"6\" width=\"14\" height=\"12\" rx=\"2\"/><path d=\"M7 3h12a2 2 0 012 2v10\"/>", "help": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1-1.5 2\"/><path d=\"M12 17h.01\"/>", "pen": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z\"/>", "book": "<path d=\"M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z\"/>", "file": "<path d=\"M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h6\"/>", "link": "<path d=\"M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1\"/>", "check": "<path d=\"M20 6L9 17l-5-5\"/>", "x": "<path d=\"M18 6L6 18M6 6l12 12\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.5 2.9 1-6.1L3.1 9.5l6.1-.9z\"/>", "flame": "<path d=\"M12 3c1 3.5 5 5.5 5 10a5 5 0 01-10 0c0-2 1-3.2 2-4 0 1.8 1 2.5 2 2.5 0-3-1-5 1-8.5z\"/>", "play": "<path d=\"M7 4l13 8-13 8z\"/>", "repeat": "<path d=\"M17 2l4 4-4 4\"/><path d=\"M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4\"/><path d=\"M21 13v2a3 3 0 01-3 3H3\"/>", "home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/>", "alert": "<path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4M12 17h.01\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21a8 8 0 0116 0\"/>", "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/>", "moon": "<path d=\"M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z\"/>", "gear": "<path d=\"M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "swap": "<path d=\"M8 3L4 7l4 4\"/><path d=\"M4 7h16\"/><path d=\"M16 21l4-4-4-4\"/><path d=\"M20 17H4\"/>", "chev": "<path d=\"M9 6l6 6-6 6\"/>"};
 function ico(n, cls){
   return `<svg class="ico ${cls||''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||''}</svg>`;
 }
@@ -349,6 +349,33 @@ function startDaily(mode){
   } else if(mode==='write') startWriteSession(pool);
   else startFlashcardSession(pool);
 }
+function dirLabel(word){
+  const f = frontOf(word), b = backOf(word), fa = isArabicText(f), ba = isArabicText(b);
+  if(fa || ba) return (fa ? 'Arabcha' : 'Tarjima') + ' → ' + (ba ? 'Arabcha' : 'Tarjima');
+  const d = deckOf(word);
+  return (d && d.swapped) ? 'Tarjima → Asl' : 'Asl → Tarjima';
+}
+function dirBtnHTML(word){
+  return `<button type="button" class="dir-btn" data-dir title="Yo'nalishni almashtirish (S)" aria-label="Yo'nalishni almashtirish">${ico('swap')}<span>${dirLabel(word)}</span></button>`;
+}
+function swapSessionDirection(){
+  const map = {
+    'flashcard-session': [fcSession, renderFlashcardSession],
+    'quiz-session': [quizSession, renderQuizSession],
+    'write-session': [writeSession, renderWriteSession]
+  };
+  const m = map[state.view];
+  if(!m || !m[0] || !m[0].current) return;
+  if(document.querySelector('#view-quiz-session .quiz-option:disabled')) return;
+  const wi = document.getElementById('writeAnswer');
+  if(state.view === 'write-session' && wi && wi.disabled) return;
+  const s = m[0];
+  const ids = new Set([s.current.deckId].concat(s.queue.map(x=>x.deckId)));
+  ids.forEach(id=>{ const d = findDeck(id); if(d) d.swapped = !d.swapped; });
+  saveDecks();
+  s.queue.unshift(s.current); s.current = null;
+  m[1]();
+}
 function calcStreak(log){
   let s = 0;
   for(let i=0;i<365;i++){
@@ -399,12 +426,16 @@ document.addEventListener('keydown', (e)=>{
     if(e.code === 'Space'){ e.preventDefault(); const c = document.getElementById('flashcard'); if(c) c.classList.toggle('flipped'); }
     else if(e.key === 'ArrowRight'){ const b = document.getElementById('judgeKnown'); if(b) b.click(); }
     else if(e.key === 'ArrowLeft'){ const b = document.getElementById('judgeUnknown'); if(b) b.click(); }
+    else if(e.key === 's' || e.key === 'S') swapSessionDirection();
+  } else if(state.view === 'quiz-session' && (e.key === 's' || e.key === 'S')){
+    swapSessionDirection();
   } else if(state.view === 'quiz-session' && /^[1-4]$/.test(e.key)){
     const b = document.querySelectorAll('#quizOptions .quiz-option')[Number(e.key)-1];
     if(b && !b.disabled) b.click();
   }
 });
 document.addEventListener('click', (e)=>{
+  if(e.target.closest('[data-dir]')){ swapSessionDirection(); return; }
   if(e.target.closest('[data-exit]')) switchView(state.view.replace('-session','-setup'));
 });
 
@@ -1257,6 +1288,7 @@ function renderFlashcardSession(){
         <span>${sessionProgressPct(fcSession)}%</span>
       </div>
       <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${sessionProgressPct(fcSession)}%"></div></div>
+      <div class="dir-row">${dirBtnHTML(word)}</div>
 
       <div class="flash-stage">
         <div class="flashcard" id="flashcard" tabindex="0" role="button" aria-label="Kartani ag'darish">
@@ -1359,6 +1391,7 @@ function renderQuizSession(){
         <span>${sessionProgressPct(quizSession)}%</span>
       </div>
       <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${sessionProgressPct(quizSession)}%"></div></div>
+      <div class="dir-row">${dirBtnHTML(word)}</div>
       <p class="lead" style="margin-top:16px;">Qaysi biri to'g'ri?</p>
       <div class="quiz-word">${wordSpan(frontOf(word), 'quiz-word-text')}</div>
       <div class="quiz-options" id="quizOptions">
@@ -1419,6 +1452,7 @@ function renderWriteSession(){
         <span>${sessionProgressPct(writeSession)}%</span>
       </div>
       <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${sessionProgressPct(writeSession)}%"></div></div>
+      <div class="dir-row">${dirBtnHTML(word)}</div>
       <p class="lead" style="margin-top:16px;">Berilgan so'zning tarjimasini yozing:</p>
       <div class="quiz-word">${wordSpan(frontOf(word), 'quiz-word-text')}</div>
       <input type="text" class="write-input" id="writeAnswer" placeholder="Javobingiz..." autocomplete="off">
