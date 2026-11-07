@@ -216,7 +216,7 @@ function toast(msg){
   let el = document.getElementById('vocaby-toast');
   if(!el){
     el = document.createElement('div');
-    el.id = 'vocaby-toast';
+    el.id = 'vocaby-toast'; el.setAttribute('role','status'); el.setAttribute('aria-live','polite');
     el.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
       background:var(--ink);color:var(--sand);padding:13px 22px;border-radius:14px;font-weight:600;
       font-size:14px;z-index:100;opacity:0;transition:all .3s ease;box-shadow:0 10px 30px rgba(0,0,0,0.3);
@@ -245,6 +245,26 @@ document.getElementById('modalOverlay').addEventListener('click', (e)=>{
   if(e.target.id === 'modalOverlay') closeModal();
 });
 
+/* ================= Klaviatura va qulaylik ================= */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){ closeModal(); return; }
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target;
+  if(t.matches && t.matches('.mode-card,.add-deck-option,.deck-card') && (e.key==='Enter' || e.key===' ')){ e.preventDefault(); t.click(); return; }
+  if(t.matches && t.matches('input,textarea,select,button')) return;
+  if(state.view === 'flashcard-session'){
+    if(e.code === 'Space'){ e.preventDefault(); const c = document.getElementById('flashcard'); if(c) c.classList.toggle('flipped'); }
+    else if(e.key === 'ArrowRight'){ const b = document.getElementById('judgeKnown'); if(b) b.click(); }
+    else if(e.key === 'ArrowLeft'){ const b = document.getElementById('judgeUnknown'); if(b) b.click(); }
+  } else if(state.view === 'quiz-session' && /^[1-4]$/.test(e.key)){
+    const b = document.querySelectorAll('#quizOptions .quiz-option')[Number(e.key)-1];
+    if(b && !b.disabled) b.click();
+  }
+});
+document.addEventListener('click', (e)=>{
+  if(e.target.closest('[data-exit]')) switchView(state.view.replace('-session','-setup'));
+});
+
 /* ================= Router ================= */
 function switchView(viewName){
   state.view = viewName;
@@ -254,7 +274,12 @@ function switchView(viewName){
     'flashcard-results':'flashcard-setup','quiz-setup':'quiz-setup','quiz-session':'quiz-setup','quiz-results':'quiz-setup',
     'write-setup':'write-setup','write-session':'write-setup','write-results':'write-setup','stats':'stats','settings':'settings'
   };
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === tabMap[viewName]));
+  document.querySelectorAll('.tab').forEach(t => {
+    const on = t.dataset.view === tabMap[viewName];
+    t.classList.toggle('active', on);
+    if(on) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current');
+  });
+  document.body.dataset.mode = /-session$/.test(viewName) ? 'session' : '';
   window.scrollTo({top:0, behavior:'smooth'});
   renderCurrentView();
 }
@@ -364,22 +389,32 @@ function renderHome(){
       <p class="lead">Istalgan tildagi lug'atni oson va zavqli tarzda yodlang. Birinchi lug'atingizni qo'shishdan boshlaymiz.</p>
     </div>`}
 
+    ${totalWords>0 ? `<div class="card">
+      <h2>Mashqni boshlash</h2>
+      <p class="lead" style="margin-bottom:14px;">Qaysi mashq turi bilan ishlaysiz?</p>
+      <div class="mode-grid">
+        <div class="mode-card" role="button" tabindex="0" data-go="flashcard-setup"><span class="icon">🃏</span><h3>Flashcard</h3><p>Kartochkalarni ag'darib yodlang</p></div>
+        <div class="mode-card" role="button" tabindex="0" data-go="quiz-setup"><span class="icon">❓</span><h3>Quiz</h3><p>To'g'ri javobni tanlang</p></div>
+        <div class="mode-card" role="button" tabindex="0" data-go="write-setup"><span class="icon">✍️</span><h3>Yozib topish</h3><p>Tarjimasini yozing</p></div>
+        <div class="mode-card" role="button" tabindex="0" data-go="dictionary"><span class="icon">📖</span><h3>Lug'at</h3><p>Barcha so'zlarni ko'ring</p></div>
+      </div>
+    </div>` : ''}
     <div class="card">
       <h2>Yangi lug'at qo'shish</h2>
       <p class="lead">CSV fayl, Google Sheets havolasi yoki o'zingiz qo'lda yozing. Arabcha bo'lishi shart emas — istalgan til juftligi (masalan ingliz-rus, ispan-o'zbek va h.k.) mos keladi.</p>
       <div class="add-deck-grid">
-        <div class="add-deck-option" id="uploadZone">
+        <div class="add-deck-option" role="button" tabindex="0" id="uploadZone">
           <span class="icon">📄</span>
           <h3>CSV fayl</h3>
           <p>Bosing yoki faylni tashlang</p>
           <input type="file" id="csvInput" accept=".csv" style="display:none;">
         </div>
-        <div class="add-deck-option" id="sheetsZone">
+        <div class="add-deck-option" role="button" tabindex="0" id="sheetsZone">
           <span class="icon">🔗</span>
           <h3>Google Sheets</h3>
           <p>Ommaga ochiq havola</p>
         </div>
-        <div class="add-deck-option" id="manualZone">
+        <div class="add-deck-option" role="button" tabindex="0" id="manualZone">
           <span class="icon">✍️</span>
           <h3>Qo'lda yozish</h3>
           <p>O'zingiz so'z qo'shing</p>
@@ -389,17 +424,6 @@ function renderHome(){
         <button class="btn btn-outline" id="loadSampleBtn">✨ Namuna lug'atni sinab ko'rish (20 ta so'z)</button>
       </div>` : ''}
     </div>
-
-    ${totalWords>0 ? `<div class="card">
-      <h2>Mashqni boshlash</h2>
-      <p class="lead" style="margin-bottom:14px;">Qaysi mashq turi bilan ishlaysiz?</p>
-      <div class="mode-grid">
-        <div class="mode-card" data-go="flashcard-setup"><span class="icon">🃏</span><h3>Flashcard</h3><p>Kartochkalarni ag'darib yodlang</p></div>
-        <div class="mode-card" data-go="quiz-setup"><span class="icon">❓</span><h3>Quiz</h3><p>To'g'ri javobni tanlang</p></div>
-        <div class="mode-card" data-go="write-setup"><span class="icon">✍️</span><h3>Yozib topish</h3><p>Tarjimasini yozing</p></div>
-        <div class="mode-card" data-go="dictionary"><span class="icon">📖</span><h3>Lug'at</h3><p>Barcha so'zlarni ko'ring</p></div>
-      </div>
-    </div>` : ''}
   `;
 
   bindInstallBanner(el);
@@ -723,6 +747,7 @@ function renderManualRows(){
 /* ================= DICTIONARY ================= */
 function renderDictionary(){
   const el = document.getElementById('view-dictionary');
+  const _hadFocus = document.activeElement && document.activeElement.id === 'dictSearch';
   if(state.decks.length === 0){
     el.innerHTML = emptyStateHTML();
     bindEmptyState(el);
@@ -772,6 +797,7 @@ function renderDictionary(){
     </div>
   `;
   el.querySelector('#dictSearch').addEventListener('input', e=>{ state.dictSearch = e.target.value; renderDictionary(); });
+  if(_hadFocus){ const s = el.querySelector('#dictSearch'); s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
   el.querySelectorAll('[data-deckf]').forEach(c=>{
     c.addEventListener('click', ()=>{ state.dictDeckFilter = c.dataset.deckf; renderDictionary(); });
   });
@@ -1079,14 +1105,14 @@ function renderFlashcardSession(){
 
   el.innerHTML = `
     <div class="card">
-      <div class="session-top">
+      <div class="session-top"><button class="exit-btn" data-exit type="button" aria-label="Mashqdan chiqish">✕</button>
         <span>Flashcard ${sessionProgressLabel(fcSession)}</span>
         <span>${sessionProgressPct(fcSession)}%</span>
       </div>
       <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${sessionProgressPct(fcSession)}%"></div></div>
 
       <div class="flash-stage">
-        <div class="flashcard" id="flashcard">
+        <div class="flashcard" id="flashcard" tabindex="0" role="button" aria-label="Kartani ag'darish">
           <div class="face face-front">
             ${wordSpan(frontOf(word), 'hero-word')}
             <div class="hint">Bosib ko'ring ↓</div>
@@ -1110,6 +1136,7 @@ function renderFlashcardSession(){
   `;
   const cardEl = document.getElementById('flashcard');
   cardEl.addEventListener('click', ()=> cardEl.classList.toggle('flipped'));
+  cardEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); cardEl.classList.toggle('flipped'); } });
   document.getElementById('judgeKnown').addEventListener('click', (e)=>{ e.stopPropagation(); judgeFlashcard(word, true); });
   document.getElementById('judgeUnknown').addEventListener('click', (e)=>{ e.stopPropagation(); judgeFlashcard(word, false); });
 }
@@ -1177,7 +1204,7 @@ function renderQuizSession(){
 
   el.innerHTML = `
     <div class="card">
-      <div class="session-top">
+      <div class="session-top"><button class="exit-btn" data-exit type="button" aria-label="Mashqdan chiqish">✕</button>
         <span>Quiz ${sessionProgressLabel(quizSession)}</span>
         <span>${sessionProgressPct(quizSession)}%</span>
       </div>
@@ -1185,7 +1212,7 @@ function renderQuizSession(){
       <p class="lead" style="margin-top:16px;">Qaysi biri to'g'ri?</p>
       <div class="quiz-word">${wordSpan(frontOf(word), 'quiz-word-text')}</div>
       <div class="quiz-options" id="quizOptions">
-        ${options.map(o=>`<button class="quiz-option" data-id="${o.id}">${escapeHTML(backOf(o))}</button>`).join('')}
+        ${options.map((o,i)=>`<button class="quiz-option" data-id="${o.id}"><span class="opt-key">${i+1}</span><span>${escapeHTML(backOf(o))}</span></button>`).join('')}
       </div>
       <div class="session-scoreboard">
         <span class="badge-known">🟢 To'g'ri: ${quizSession.correctCount}</span>
@@ -1237,7 +1264,7 @@ function renderWriteSession(){
 
   el.innerHTML = `
     <div class="card">
-      <div class="session-top">
+      <div class="session-top"><button class="exit-btn" data-exit type="button" aria-label="Mashqdan chiqish">✕</button>
         <span>Yozib topish ${sessionProgressLabel(writeSession)}</span>
         <span>${sessionProgressPct(writeSession)}%</span>
       </div>
@@ -1314,6 +1341,11 @@ function renderStats(){
     days.push({ k, count: (log[k]?.totalCount)||0 });
   }
   const maxCount = Math.max(1, ...days.map(d=>d.count));
+  let streak = 0;
+  for(let i=0;i<365;i++){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    if((log[d.toISOString().slice(0,10)]?.totalCount)||0) streak++; else if(i>0) break;
+  }
 
   el.innerHTML = `
     <div class="card">
@@ -1331,6 +1363,7 @@ function renderStats(){
     <div class="card">
       <h2>Bugun</h2>
       <div class="stats-grid">
+        <div class="stat-box"><div class="num">🔥 ${streak}</div><div class="label">Ketma-ket kun</div></div>
         <div class="stat-box"><div class="num">${today.newCount}</div><div class="label">Yangi</div></div>
         <div class="stat-box"><div class="num">${today.reviewedCount}</div><div class="label">Takrorlandi</div></div>
         <div class="stat-box"><div class="num">${acc}%</div><div class="label">To'g'ri</div></div>
