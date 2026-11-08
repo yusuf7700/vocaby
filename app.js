@@ -1676,7 +1676,7 @@ function renderStats(){
       ${dWords.length ? `<h3 class="day-sub">Shu kuni oxirgi marta ko'rilgan so'zlar (${dWords.length})</h3>
       <div class="day-words">${dWords.slice(0, shown).map(w=>`<div class="day-word"><span class="status-dot status-${w.status}"></span><span class="${langClass(frontOf(w))}">${escapeHTML(frontOf(w))}</span><em>${escapeHTML(backOf(w))}</em></div>`).join('')}</div>
       ${(dWords.length>shown || shown>5) ? `<div class="day-more">${dWords.length>shown ? `<button type="button" class="link-more" id="dayMore">Yana ko'rish (${Math.min(10, dWords.length-shown)} ta)</button>` : ''}${shown>5 ? `<button type="button" class="link-more" id="dayLess">Yig'ish</button>` : ''}</div>` : ''}` : ''}
-      ${dl.reviewedCount ? `<button class="btn btn-outline btn-block" id="fixReviewed" type="button" style="margin-top:16px">"Takrorlandi" sonini 0 ga tushirish</button>` : ''}
+      ${dl.reviewedCount ? `<button class="text-link" id="fixReviewed" type="button">Hisobni tuzatish</button>` : ''}
     </div>`;
 
   el.innerHTML = `
@@ -1723,10 +1723,19 @@ function renderStats(){
   if(dl_) dl_.addEventListener('click', ()=>{ state.dayShown = 5; renderStats(); });
   const fx = el.querySelector('#fixReviewed');
   if(fx) fx.addEventListener('click', ()=>{
-    if(!fx.dataset.sure){ fx.dataset.sure = '1'; fx.textContent = 'Ha, 0 ga tushirish'; return; }
-    const lg = loadLog();
-    if(lg[state.statsDay]){ lg[state.statsDay].reviewedCount = 0; saveLog(lg); }
-    renderStats(); toast('Tuzatildi');
+    const k = state.statsDay, n = ((loadLog()[k]) || {}).reviewedCount || 0;
+    openModal(`<h2>Hisobni tuzatish</h2>
+      <p class="lead">${k} kunidagi <b>"Takrorlandi"</b> soni (${n}) <b>0</b> ga tushiriladi. Bu amalni qaytarib bo'lmaydi. Boshqa raqamlar (yangi, jami javoblar) o'zgarmaydi.</p>
+      <div class="btn-row" style="flex-direction:column;gap:12px">
+        <button class="btn btn-primary btn-block" id="fxCancel" type="button">Bekor qilish</button>
+        <button class="btn btn-danger btn-block" id="fxOk" type="button">Ha, 0 ga tushirish</button>
+      </div>`);
+    document.getElementById('fxCancel').onclick = closeModal;
+    document.getElementById('fxOk').onclick = ()=>{
+      const lg = loadLog();
+      if(lg[k]){ lg[k].reviewedCount = 0; saveLog(lg); }
+      closeModal(); renderStats(); toast('Tuzatildi');
+    };
   });
   if(state._scrollDay){ state._scrollDay = false; const dc = el.querySelector('#dayDetail'); if(dc) dc.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
 }
