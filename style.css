@@ -629,3 +629,11 @@ input,select,textarea{color:var(--ink)}
   #tabs .tab.active{background:color-mix(in srgb,var(--teal) 14%,transparent);color:var(--teal-deep);font-weight:800}
   [data-theme="dark"] #tabs .tab.active{background:color-mix(in srgb,var(--gold) 16%,transparent);color:var(--gold)}
 }
+
+/* v3.7: takror belgisi izohi */
+button.srs-badge{cursor:pointer;font-family:inherit}
+.srs-badge .ico.q{width:16px;height:16px;opacity:.75}
+.srs-badge:active{transform:scale(.97)}
+.srs-info{margin:8px 0 18px;line-height:1.55;font-size:15.5px}
+.srs-info p{margin:0 0 10px}
+.srs-ladder{font-size:13.5px;color:var(--ink-soft);background:var(--sand-2);padding:10px 12px;border-radius:12px}

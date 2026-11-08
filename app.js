@@ -351,10 +351,35 @@ function startDaily(mode){
 }
 function srsBadgeHTML(w){
   const s = srsOf(w);
-  if(!s) return `<span class="srs-badge is-new">${ico('star')} Yangi so'z</span>`;
-  if(s.box === 0) return `<span class="srs-badge is-relearn">${ico('repeat')} Qayta o'rganish</span>`;
+  const q = ico('help','q');
+  if(!s) return `<button type="button" class="srs-badge is-new" data-srs="new" aria-label="Yangi so'z haqida izoh">${ico('star')} Yangi so'z ${q}</button>`;
+  if(s.box === 0) return `<button type="button" class="srs-badge is-relearn" data-srs="relearn" aria-label="Qayta o'rganish haqida izoh">${ico('repeat')} Qayta o'rganish ${q}</button>`;
   const dots = [1,2,3,4,5].map(i=>`<i class="${i<=s.box?'on':''}"></i>`).join('');
-  return `<span class="srs-badge is-review" title="Takrorlash darajasi: ${s.box}/5">${ico('repeat')} Takror <span class="srs-dots">${dots}</span></span>`;
+  return `<button type="button" class="srs-badge is-review" data-srs="review" data-box="${s.box}" aria-label="Takror haqida izoh">${ico('repeat')} Takror <span class="srs-dots">${dots}</span> ${q}</button>`;
+}
+function showSrsInfo(kind, box){
+  const days = n => n === 1 ? 'ertaga' : n + ' kundan keyin';
+  let title, body;
+  if(kind === 'new'){
+    title = "Yangi so'z";
+    body = `<p>Bu so'zni hali o'rganmagansiz, uni birinchi marta ko'ryapsiz.</p>
+      <p><b>To'g'ri javob bersangiz</b> so'z ${days(SRS_STEPS[1])} takrorlash uchun qaytadi.</p>
+      <p><b>Xato qilsangiz</b> bugunoq yana ko'rsatiladi.</p>`;
+  } else if(kind === 'relearn'){
+    title = "Qayta o'rganish";
+    body = `<p>Bu so'zda oxirgi safar xato qilgansiz, shuning uchun u boshidan boshlandi.</p>
+      <p><b>To'g'ri javob bersangiz</b> so'z ${days(SRS_STEPS[1])} qaytadi va yana o'sib boradi.</p>
+      <p><b>Xato qilsangiz</b> yana boshiga qaytadi.</p>`;
+  } else {
+    const nxt = SRS_STEPS[Math.min(box+1,5)];
+    title = `Takror · ${box}/5-daraja`;
+    body = `<p>Bu so'zni avval o'rgangansiz, endi eslab qolganingizni tekshiryapmiz. Nuqtalar qancha ko'p bo'lsa, so'z shuncha mustahkam.</p>
+      <p><b>To'g'ri javob bersangiz</b> daraja oshadi va keyingi takror ${days(nxt)} bo'ladi${box>=5?' (eng yuqori daraja)':''}.</p>
+      <p><b>Xato qilsangiz</b> so'z boshiga qaytadi.</p>
+      <p class="srs-ladder">Takror oralig'i: 1-daraja ${days(1)}, 2-daraja ${days(3)}, 3-daraja ${days(7)}, 4-daraja ${days(14)}, 5-daraja ${days(30)}.</p>`;
+  }
+  openModal(`<h2>${title}</h2><div class="srs-info">${body}</div><button class="btn btn-primary btn-block" id="srsOk">Tushundim</button>`);
+  document.getElementById('srsOk').onclick = closeModal;
 }
 function openWordModal(id){
   const w = id ? allWordsFlat().find(x=>x.id===id) : null;
@@ -479,6 +504,8 @@ document.addEventListener('keydown', (e)=>{
   }
 });
 document.addEventListener('click', (e)=>{
+  const si = e.target.closest('[data-srs]');
+  if(si){ showSrsInfo(si.dataset.srs, Number(si.dataset.box||0)); return; }
   if(e.target.closest('[data-dir]')){ swapSessionDirection(); return; }
   if(e.target.closest('[data-exit]')) switchView(state.view.replace('-session','-setup'));
 });
