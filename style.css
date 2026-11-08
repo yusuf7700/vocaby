@@ -597,3 +597,35 @@ input,select,textarea{color:var(--ink)}
 .back-btn{display:inline-flex;align-items:center;gap:4px;background:none;border:0;color:var(--ink-soft);font-weight:700;font-size:14px;padding:6px 8px 6px 0;margin-bottom:6px;cursor:pointer;min-height:40px}
 .back-btn .ico{width:18px;height:18px}
 .check-row.is-empty{opacity:.5}
+
+/* v3.5: takror belgisi, so'zni tahrirlash */
+.dir-row{flex-wrap:wrap;gap:10px;align-items:center}
+.srs-badge{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;border:1.5px solid transparent}
+.srs-badge .ico{width:15px;height:15px}
+.srs-badge.is-new{background:rgba(242,169,59,.16);color:#A8650A;border-color:rgba(242,169,59,.55)}
+.srs-badge.is-relearn{background:rgba(239,146,132,.16);color:#B8402F;border-color:rgba(239,146,132,.6)}
+.srs-badge.is-review{background:rgba(79,190,147,.14);color:#1E7556;border-color:rgba(79,190,147,.55)}
+[data-theme="dark"] .srs-badge.is-new{color:var(--amber)}
+[data-theme="dark"] .srs-badge.is-relearn{color:#F4A89C}
+[data-theme="dark"] .srs-badge.is-review{color:#6FD6AE}
+.srs-dots{display:inline-flex;gap:3px;margin-left:2px}
+.srs-dots i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.25}
+.srs-dots i.on{opacity:1}
+.word-card{padding-right:62px}
+.word-card .deck-badge{position:static;margin-bottom:8px}
+.word-card .status-dot{top:21px;bottom:auto;right:48px}
+.wc-edit{position:absolute;bottom:8px;right:8px;width:40px;height:40px;display:grid;place-items:center;background:none;border:0;border-radius:12px;color:var(--ink-soft);cursor:pointer}
+.wc-edit:hover{background:var(--sand-2);color:var(--ink)}
+.wc-edit .ico{width:18px;height:18px}
+.dict-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.dict-head h1{margin:0}
+.add-word-btn{min-height:44px;padding:10px 18px}
+.wm-input{width:100%;padding:13px 14px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--ink);font-size:16px}
+.btn-danger{background:transparent;color:var(--coral);border:1.5px solid var(--coral)}
+.btn-danger:hover{background:var(--coral);color:#fff}
+
+/* v3.6: faol tab ko'rinishi (yorug' va tungi rejim) */
+@media (max-width:720px){
+  #tabs .tab.active{background:color-mix(in srgb,var(--teal) 14%,transparent);color:var(--teal-deep);font-weight:800}
+  [data-theme="dark"] #tabs .tab.active{background:color-mix(in srgb,var(--gold) 16%,transparent);color:var(--gold)}
+}
