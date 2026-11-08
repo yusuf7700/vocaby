@@ -1339,13 +1339,15 @@ function sessionJudge(session, word, isCorrect){
 }
 function updateWordStatus(word, isCorrect){
   const wasNew = word.status === 'new';
+  // Takrorlandi: avval topilgan (bilaman) so'z bugun takrorda yana to'g'ri topilsa, kuniga bir marta
+  const knownBefore = word.status === 'known' && word.stats.lastReviewed !== todayKey();
   srsUpdate(word, isCorrect);
   word.status = isCorrect ? 'known' : 'unknown';
   word.stats.lastReviewed = todayKey();
   if(isCorrect) word.stats.correct++; else word.stats.wrong++;
   saveDecks();
   if(wasNew) bumpLog('newCount', 1);
-  else bumpLog('reviewedCount', 1);
+  else if(isCorrect && knownBefore) bumpLog('reviewedCount', 1);
   bumpLog('totalCount', 1);
   if(isCorrect) bumpLog('correctCount', 1);
 }
