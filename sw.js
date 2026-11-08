@@ -1,7 +1,7 @@
 /* ===================== VocabY Service Worker ===================== */
 /* Bu fayl saytni internetsiz ham ishlaydigan qiladi (asosiy fayllarni keshlaydi). */
 
-const CACHE_NAME = 'vocaby-cache-v4';
+const CACHE_NAME = 'vocaby-cache-v5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

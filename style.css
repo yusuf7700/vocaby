@@ -670,3 +670,17 @@ button.srs-badge{cursor:pointer;font-family:inherit}
 /* v3.10: xavfli amalni chetga olish */
 .text-link{display:block;margin:18px 0 0 auto;background:none;border:0;color:var(--ink-soft);font-family:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:8px 4px}
 .text-link:hover{color:var(--ink)}
+
+/* Qolgan emojilar o'rniga SVG ikonlar */
+.btn,.ib-install-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn .ico{width:18px;height:18px}
+.card h1 .ico,.card h2 .ico{width:1em;height:1em;margin-right:6px;color:var(--teal-deep);vertical-align:-.12em}
+[data-theme="dark"] .card h1 .ico,[data-theme="dark"] .card h2 .ico{color:var(--gold)}
+.install-banner .ib-icon{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:var(--grad-soft);color:var(--teal-deep)}
+.install-banner .ib-icon .ico{width:22px;height:22px}
+[data-theme="dark"] .install-banner .ib-icon{color:var(--gold)}
+.install-banner .ib-text .ico{width:1em;height:1em;vertical-align:-.15em}
+.ib-close,.row-remove,.exit-btn{display:inline-flex;align-items:center;justify-content:center}
+.ib-close .ico,.row-remove .ico,.exit-btn .ico{width:16px;height:16px}
+.lead .ico.ok{margin-right:4px}
+.settings-check .ico,label .ico{width:1.1em;height:1.1em;margin:0 4px}

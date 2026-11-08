@@ -246,7 +246,7 @@ document.getElementById('modalOverlay').addEventListener('click', (e)=>{
 });
 
 /* ================= SVG ikonlar ================= */
-const ICONS = {"layers": "<rect x=\"3\" y=\"6\" width=\"14\" height=\"12\" rx=\"2\"/><path d=\"M7 3h12a2 2 0 012 2v10\"/>", "help": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1-1.5 2\"/><path d=\"M12 17h.01\"/>", "pen": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z\"/>", "book": "<path d=\"M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z\"/>", "file": "<path d=\"M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h6\"/>", "link": "<path d=\"M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1\"/>", "check": "<path d=\"M20 6L9 17l-5-5\"/>", "x": "<path d=\"M18 6L6 18M6 6l12 12\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.5 2.9 1-6.1L3.1 9.5l6.1-.9z\"/>", "flame": "<path d=\"M12 3c1 3.5 5 5.5 5 10a5 5 0 01-10 0c0-2 1-3.2 2-4 0 1.8 1 2.5 2 2.5 0-3-1-5 1-8.5z\"/>", "play": "<path d=\"M7 4l13 8-13 8z\"/>", "repeat": "<path d=\"M17 2l4 4-4 4\"/><path d=\"M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4\"/><path d=\"M21 13v2a3 3 0 01-3 3H3\"/>", "home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/>", "alert": "<path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4M12 17h.01\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21a8 8 0 0116 0\"/>", "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/>", "moon": "<path d=\"M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z\"/>", "gear": "<path d=\"M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "swap": "<path d=\"M8 3L4 7l4 4\"/><path d=\"M4 7h16\"/><path d=\"M16 21l4-4-4-4\"/><path d=\"M20 17H4\"/>", "back": "<path d=\"M15 6l-6 6 6 6\"/>", "trash": "<path d=\"M3 6h18\"/><path d=\"M8 6V4h8v2\"/><path d=\"M19 6l-1 14H6L5 6\"/><path d=\"M10 11v6M14 11v6\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "chev": "<path d=\"M9 6l6 6-6 6\"/>"};
+const ICONS = {"layers": "<rect x=\"3\" y=\"6\" width=\"14\" height=\"12\" rx=\"2\"/><path d=\"M7 3h12a2 2 0 012 2v10\"/>", "help": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1-1.5 2\"/><path d=\"M12 17h.01\"/>", "pen": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z\"/>", "book": "<path d=\"M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z\"/>", "file": "<path d=\"M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h6\"/>", "link": "<path d=\"M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1\"/>", "check": "<path d=\"M20 6L9 17l-5-5\"/>", "x": "<path d=\"M18 6L6 18M6 6l12 12\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.5 2.9 1-6.1L3.1 9.5l6.1-.9z\"/>", "flame": "<path d=\"M12 3c1 3.5 5 5.5 5 10a5 5 0 01-10 0c0-2 1-3.2 2-4 0 1.8 1 2.5 2 2.5 0-3-1-5 1-8.5z\"/>", "play": "<path d=\"M7 4l13 8-13 8z\"/>", "repeat": "<path d=\"M17 2l4 4-4 4\"/><path d=\"M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4\"/><path d=\"M21 13v2a3 3 0 01-3 3H3\"/>", "home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/>", "alert": "<path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4M12 17h.01\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21a8 8 0 0116 0\"/>", "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/>", "moon": "<path d=\"M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z\"/>", "gear": "<path d=\"M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "swap": "<path d=\"M8 3L4 7l4 4\"/><path d=\"M4 7h16\"/><path d=\"M16 21l4-4-4-4\"/><path d=\"M20 17H4\"/>", "back": "<path d=\"M15 6l-6 6 6 6\"/>", "trash": "<path d=\"M3 6h18\"/><path d=\"M8 6V4h8v2\"/><path d=\"M19 6l-1 14H6L5 6\"/><path d=\"M10 11v6M14 11v6\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "chev": "<path d=\"M9 6l6 6-6 6\"/>", "download": "<path d=\"M12 3v12M7 10l5 5 5-5\"/><path d=\"M4 19h16\"/>", "phone": "<rect x=\"6\" y=\"2\" width=\"12\" height=\"20\" rx=\"3\"/><path d=\"M11 18h2\"/>", "share": "<path d=\"M12 15V3M8 7l4-4 4 4\"/><path d=\"M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7\"/>", "copy": "<rect x=\"9\" y=\"9\" width=\"12\" height=\"12\" rx=\"2\"/><path d=\"M5 15V5a2 2 0 012-2h10\"/>", "sparkles": "<path d=\"M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z\"/><path d=\"M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z\"/>", "cloud": "<path d=\"M7 18a4.5 4.5 0 01-.6-8.96A6 6 0 0118 10a4 4 0 01-1 8z\"/>", "merge": "<circle cx=\"6\" cy=\"5\" r=\"2.5\"/><circle cx=\"6\" cy=\"19\" r=\"2.5\"/><circle cx=\"18\" cy=\"12\" r=\"2.5\"/><path d=\"M6 7.5v9M8 6c5 0 8 2.5 8 4.5M8 18c5 0 8-2.5 8-4.5\"/>", "login": "<path d=\"M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4\"/><path d=\"M10 17l5-5-5-5M15 12H3\"/>", "save": "<path d=\"M5 3h11l4 4v12a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z\"/><path d=\"M7 3v5h8M7 21v-7h10v7\"/>", "upload": "<path d=\"M12 15V3M7 8l5-5 5 5\"/><path d=\"M4 19h16\"/>", "mail": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"M3 7l9 6 9-6\"/>", "camera": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"17.5\" cy=\"6.5\" r=\".6\"/>", "heart": "<path d=\"M12 20s-7-4.4-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.6-9 9-9 9z\"/>", "info": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v6M12 7.5h.01\"/>", "chat": "<path d=\"M21 12a8 8 0 01-11.6 7.1L3 21l1.9-5.4A8 8 0 1121 12z\"/>", "edit": "<path d=\"M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16z\"/><path d=\"M13.5 6.5l4 4\"/>", "gift": "<rect x=\"3\" y=\"8\" width=\"18\" height=\"4\" rx=\"1\"/><path d=\"M5 12v8h14v-8M12 8v12\"/><path d=\"M12 8C10 8 8 7 8 5.5S10.5 3 12 8zM12 8c2 0 4-1 4-2.5S13.5 3 12 8z\"/>", "shield": "<path d=\"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z\"/><path d=\"M9 12l2 2 4-4\"/>", "refresh": "<path d=\"M20 11a8 8 0 00-14-4L4 9\"/><path d=\"M4 4v5h5\"/><path d=\"M4 13a8 8 0 0014 4l2-2\"/><path d=\"M20 20v-5h-5\"/>"};
 function ico(n, cls){
   return `<svg class="ico ${cls||''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||''}</svg>`;
 }
@@ -562,7 +562,7 @@ window.addEventListener('beforeinstallprompt', (e)=>{
 });
 window.addEventListener('appinstalled', ()=>{
   deferredInstallPrompt = null;
-  toast("VocabY o'rnatildi! 🎉");
+  toast("VocabY o'rnatildi!");
   if(state.view === 'home' || state.view === 'settings') renderCurrentView();
 });
 async function triggerInstallPrompt(){
@@ -584,25 +584,25 @@ function installBannerHTML(){
   if(isIOS()){
     return `
       <div class="install-banner" id="installBanner">
-        <div class="ib-icon">📲</div>
-        <div class="ib-text"><b>iPhone/iPad'ga o'rnatish:</b> pastdagi <b>Ulashish</b> (⬆️ kvadrat ichida strelka) belgisini bosing → ro'yxatdan <b>"Bosh ekranga qo'shish"</b> (Add to Home Screen)ni tanlang.</div>
-        <button class="ib-close" id="installBannerClose" aria-label="Yopish">✕</button>
+        <div class="ib-icon">${ico('phone')}</div>
+        <div class="ib-text"><b>iPhone/iPad'ga o'rnatish:</b> pastdagi <b>Ulashish</b> (${ico('share')} kvadrat ichida strelka) belgisini bosing → ro'yxatdan <b>"Bosh ekranga qo'shish"</b> (Add to Home Screen)ni tanlang.</div>
+        <button class="ib-close" id="installBannerClose" aria-label="Yopish">${ico('x')}</button>
       </div>`;
   }
   if(deferredInstallPrompt){
     return `
       <div class="install-banner" id="installBanner">
-        <div class="ib-icon">📲</div>
+        <div class="ib-icon">${ico('phone')}</div>
         <div class="ib-text"><b>VocabY'ni ilova sifatida o'rnating</b> — tezroq ochiladi, ekranda alohida ikonka bo'lib turadi.</div>
         <button class="ib-install-btn" id="installNowBtn">O'rnatish</button>
-        <button class="ib-close" id="installBannerClose" aria-label="Yopish">✕</button>
+        <button class="ib-close" id="installBannerClose" aria-label="Yopish">${ico('x')}</button>
       </div>`;
   }
   return `
     <div class="install-banner" id="installBanner">
-      <div class="ib-icon">📲</div>
-      <div class="ib-text"><b>Ilova sifatida o'rnating:</b> brauzeringiz menyusini (⋮ yoki ⋯ yoki ⬆️) oching va "Bosh ekranga qo'shish" tugmasini bosing.</div>
-      <button class="ib-close" id="installBannerClose" aria-label="Yopish">✕</button>
+      <div class="ib-icon">${ico('phone')}</div>
+      <div class="ib-text"><b>Ilova sifatida o'rnating:</b> brauzeringiz menyusini (⋮ yoki ⋯ yoki ${ico('share')}) oching va "Bosh ekranga qo'shish" tugmasini bosing.</div>
+      <button class="ib-close" id="installBannerClose" aria-label="Yopish">${ico('x')}</button>
     </div>`;
 }
 function bindInstallBanner(el){
@@ -668,7 +668,7 @@ function renderHome(){
         </div>
       </div>
       ${state.decks.length===0 ? `<div style="margin-top:16px;text-align:center;">
-        <button class="btn btn-outline" id="loadSampleBtn">✨ Namuna lug'atni sinab ko'rish (20 ta so'z)</button>
+        <button class="btn btn-outline" id="loadSampleBtn">${ico('sparkles')} Namuna lug'atni sinab ko'rish (20 ta so'z)</button>
       </div>` : ''}
     </div>
   `;
@@ -710,7 +710,7 @@ function renderHome(){
   if(sampleBtn) sampleBtn.addEventListener('click', ()=>{
     const pairs = SAMPLE_PAIRS.map(([ar,tr])=>({col1:ar, col2:tr}));
     createDeckFromPairs("Namuna lug'at", pairs);
-    toast("Namuna lug'at qo'shildi ✅");
+    toast("Namuna lug'at qo'shildi");
     renderHome();
   });
 
@@ -745,9 +745,9 @@ function openDeckMenu(deckId){
     </div>
     <div class="btn-row" style="flex-direction:column;">
       <button class="btn btn-primary btn-block" id="btnSaveName">Nomni saqlash</button>
-      <button class="btn btn-ghost btn-block" id="btnShare">🔗 Ulashish havolasi</button>
-      <button class="btn btn-ghost btn-block" id="btnSwap">🔄 Yo'nalishni almashtirish (old ↔ orqa)</button>
-      <button class="btn btn-danger btn-block" id="btnDelete">🗑️ Lug'atni o'chirish</button>
+      <button class="btn btn-ghost btn-block" id="btnShare">${ico('link')} Ulashish havolasi</button>
+      <button class="btn btn-ghost btn-block" id="btnSwap">${ico('swap')} Yo'nalishni almashtirish (old ↔ orqa)</button>
+      <button class="btn btn-danger btn-block" id="btnDelete">${ico('trash')} Lug'atni o'chirish</button>
       <button class="btn btn-outline btn-block" id="btnCancel">Yopish</button>
     </div>
   `);
@@ -761,7 +761,7 @@ function openDeckMenu(deckId){
   };
   document.getElementById('btnSwap').onclick = ()=>{
     toggleDeckSwap(deckId);
-    toast("Yo'nalish almashtirildi 🔄");
+    toast("Yo'nalish almashtirildi");
     closeModal();
     renderCurrentView();
   };
@@ -804,17 +804,17 @@ async function shareDeck(deckId){
     await db.collection('sharedDecks').doc(shareId).set(payload);
     const url = `${location.origin}${location.pathname}?share=${shareId}`;
     openModal(`
-      <h2>Havola tayyor! 🔗</h2>
+      <h2>Havola tayyor!</h2>
       <p class="lead">Bu havolani ulashing — kim ochsa, "${escapeHTML(d.name)}" lug'atini bir bosishda o'ziga qo'sha oladi (kirish shart emas).</p>
       <input type="text" class="deck-name-input" id="shareLinkInput" value="${escapeHTML(url)}" readonly onclick="this.select()">
       <div class="btn-row" style="flex-direction:column;">
-        <button class="btn btn-primary btn-block" id="copyShareBtn">📋 Havolani nusxalash</button>
+        <button class="btn btn-primary btn-block" id="copyShareBtn">${ico('copy')} Havolani nusxalash</button>
         <button class="btn btn-outline btn-block" id="closeShareBtn">Yopish</button>
       </div>
     `);
     document.getElementById('copyShareBtn').onclick = ()=>{
       navigator.clipboard.writeText(url)
-        .then(()=> toast('Nusxalandi ✅'))
+        .then(()=> toast('Nusxalandi'))
         .catch(()=>{
           document.getElementById('shareLinkInput').select();
           toast("Qo'lda nusxalang (matn tanlandi)");
@@ -823,7 +823,7 @@ async function shareDeck(deckId){
     document.getElementById('closeShareBtn').onclick = closeModal;
   }catch(e){
     console.error(e);
-    toast('Havola yaratishda xatolik ⚠️');
+    toast('Havola yaratishda xatolik');
   }
 }
 function waitForModalFree(){
@@ -843,28 +843,28 @@ async function checkIncomingShare(){
   history.replaceState({}, '', location.pathname);
   try{
     const snap = await db.collection('sharedDecks').doc(shareId).get();
-    if(!snap.exists){ toast('Havola topilmadi yoki eskirgan ❌'); return; }
+    if(!snap.exists){ toast('Havola topilmadi yoki eskirgan'); return; }
     const data = snap.data();
-    if(!data || !Array.isArray(data.words) || !data.words.length){ toast('Lug\'at bo\'sh yoki topilmadi ❌'); return; }
+    if(!data || !Array.isArray(data.words) || !data.words.length){ toast('Lug\'at bo\'sh yoki topilmadi'); return; }
     await waitForModalFree(); // boshqa oyna (mas: sinxronlash tanlovi) ochiq bo'lsa, kutamiz
     openModal(`
-      <h2>Sizga lug'at ulashildi! 🎁</h2>
+      <h2>${ico('gift')} Sizga lug'at ulashildi!</h2>
       <p class="lead">"<b>${escapeHTML(data.name)}</b>" lug'ati (${data.words.length} ta so'z) sizga ulashilgan. Uni qo'shasizmi?</p>
       <div class="btn-row" style="flex-direction:column;">
-        <button class="btn btn-primary btn-block" id="btnImportShared">✅ O'zimga qo'shish</button>
+        <button class="btn btn-primary btn-block" id="btnImportShared">${ico('check')} O'zimga qo'shish</button>
         <button class="btn btn-outline btn-block" id="btnSkipShared">Kerak emas</button>
       </div>
     `);
     document.getElementById('btnImportShared').onclick = ()=>{
       createDeckFromPairs(data.name, data.words);
-      toast(`"${data.name}" lug'ati qo'shildi ✅`);
+      toast(`"${data.name}" lug'ati qo'shildi`);
       closeModal();
       renderCurrentView();
     };
     document.getElementById('btnSkipShared').onclick = closeModal;
   }catch(e){
     console.error(e);
-    toast('Havolani yuklashda xatolik ⚠️');
+    toast('Havolani yuklashda xatolik');
   }
 }
 
@@ -878,7 +878,7 @@ function readCSVFile(file){
   reader.onload = ()=>{
     const rows = parseCSV(reader.result);
     const pairs = pairsFromCSVRows(rows);
-    if(!pairs.length){ toast('CSV faylda so\'z topilmadi ❌'); return; }
+    if(!pairs.length){ toast('CSV faylda so\'z topilmadi'); return; }
     const defaultName = file.name.replace(/\.csv$/i, '');
     openDeckNameModal(defaultName, pairs);
   };
@@ -899,14 +899,14 @@ function openSheetsModal(){
     const url = document.getElementById('sheetsUrlInput').value.trim();
     if(!url){ toast('Havola kiritilmadi'); return; }
     const csvUrl = sheetsUrlToCSV(url);
-    if(!csvUrl){ toast('Havola noto\'g\'ri ko\'rinishda ❌'); return; }
+    if(!csvUrl){ toast('Havola noto\'g\'ri ko\'rinishda'); return; }
     try{
       const res = await fetch(csvUrl);
       if(!res.ok) throw new Error();
       const text = await res.text();
       const rows = parseCSV(text);
       const pairs = pairsFromCSVRows(rows);
-      if(!pairs.length){ toast('Jadvalda so\'z topilmadi ❌'); return; }
+      if(!pairs.length){ toast('Jadvalda so\'z topilmadi'); return; }
       closeModal();
       openDeckNameModal("Yangi lug'at", pairs);
     }catch(err){
@@ -928,7 +928,7 @@ function openDeckNameModal(defaultName, pairs){
   document.getElementById('deckNameConfirm').onclick = ()=>{
     const name = document.getElementById('deckNameInput').value.trim() || defaultName;
     createDeckFromPairs(name, pairs);
-    toast(`"${name}" lug'ati qo'shildi ✅`);
+    toast(`"${name}" lug'ati qo'shildi`);
     closeModal();
     renderCurrentView();
   };
@@ -939,7 +939,7 @@ function renderDeckManual(){
   const el = document.getElementById('view-deck-manual');
   el.innerHTML = `
     <div class="card">
-      <h1>✍️ Qo'lda lug'at yozish</h1>
+      <h1>${ico('pen')} Qo'lda lug'at yozish</h1>
       <p class="lead">Har bir qatorga bitta so'z juftligini yozing. Til nomi shart emas — istalgan tilda yozishingiz mumkin.</p>
       <input type="text" class="deck-name-input" id="manualDeckName" placeholder="Lug'at nomi (masalan: Ingliz tili so'zlari)">
       <div id="manualRows"></div>
@@ -961,9 +961,9 @@ function renderDeckManual(){
     const pairs = state.manualRows
       .map(r=>({col1:(r.col1||'').trim(), col2:(r.col2||'').trim()}))
       .filter(r=>r.col1 && r.col2);
-    if(!pairs.length){ toast("Kamida bitta to'liq qator kiriting ❌"); return; }
+    if(!pairs.length){ toast("Kamida bitta to'liq qator kiriting"); return; }
     createDeckFromPairs(name, pairs);
-    toast(`"${name}" lug'ati qo'shildi ✅`);
+    toast(`"${name}" lug'ati qo'shildi`);
     switchView('home');
   });
   document.getElementById('cancelManualBtn').addEventListener('click', ()=> switchView('home'));
@@ -974,7 +974,7 @@ function renderManualRows(){
     <div class="manual-row" data-i="${i}">
       <input type="text" placeholder="Old tomon (masalan: كتاب)" value="${escapeHTML(r.col1)}" data-field="col1">
       <input type="text" placeholder="Orqa tomon (masalan: Kitob)" value="${escapeHTML(r.col2)}" data-field="col2">
-      <button class="row-remove" data-remove="${i}" aria-label="O'chirish">✕</button>
+      <button class="row-remove" data-remove="${i}" aria-label="O'chirish">${ico('x')}</button>
     </div>
   `).join('');
   wrap.querySelectorAll('input').forEach(inp=>{
@@ -1199,7 +1199,7 @@ function renderSetupView(viewId, title, desc, onStart, mode, minWordsRequired){
 
   el.querySelector('#startBtn').addEventListener('click', ()=>{
     const selectedDeckIds = Array.from(el.querySelectorAll('.deckChk:checked')).map(c=>c.value);
-    if(selectedDeckIds.length === 0){ toast("Kamida bitta lug'at tanlang ❌"); return; }
+    if(selectedDeckIds.length === 0){ toast("Kamida bitta lug'at tanlang"); return; }
 
     const countOptEl = el.querySelector('input[name="countOpt"]:checked');
     const countOpt = countOptEl ? countOptEl.value : '20';
@@ -1218,7 +1218,7 @@ function renderSetupView(viewId, title, desc, onStart, mode, minWordsRequired){
       );
     }
 
-    if(pool.length === 0){ toast('Tanlangan mezonlar bo\'yicha so\'z topilmadi ❌'); return; }
+    if(pool.length === 0){ toast('Tanlangan mezonlar bo\'yicha so\'z topilmadi'); return; }
 
     let count;
     if(countOpt === 'all') count = pool.length;
@@ -1374,7 +1374,7 @@ function renderFlashcardSession(){
 
   el.innerHTML = `
     <div class="card">
-      <div class="session-top"><button class="exit-btn" data-exit type="button" aria-label="Mashqdan chiqish">✕</button>
+      <div class="session-top"><button class="exit-btn" data-exit type="button" aria-label="Mashqdan chiqish">${ico('x')}</button>
         <span>Flashcard ${sessionProgressLabel(fcSession)}</span>
         <span>${sessionProgressPct(fcSession)}%</span>
       </div>
@@ -1418,7 +1418,7 @@ function renderFlashcardResults(){
   renderGenericResults('view-flashcard-results', fcSession, {
     restart: ()=> switchView('flashcard-setup'),
     retryWrong: ()=>{
-      if(fcSession.wrongWords.length===0){ toast('Xato so\'zlar yo\'q 🎉'); switchView('flashcard-setup'); return; }
+      if(fcSession.wrongWords.length===0){ toast('Xato so\'zlar yo\'q'); switchView('flashcard-setup'); return; }
       startFlashcardSession(fcSession.wrongWords);
     }
   });
@@ -1477,7 +1477,7 @@ function renderQuizSession(){
 
   el.innerHTML = `
     <div class="card">
-      <div class="session-top"><button class="exit-btn" data-exit type="button" aria-label="Mashqdan chiqish">✕</button>
+      <div class="session-top"><button class="exit-btn" data-exit type="button" aria-label="Mashqdan chiqish">${ico('x')}</button>
         <span>Quiz ${sessionProgressLabel(quizSession)}</span>
         <span>${sessionProgressPct(quizSession)}%</span>
       </div>
@@ -1514,7 +1514,7 @@ function renderQuizResults(){
   renderGenericResults('view-quiz-results', quizSession, {
     restart: ()=> switchView('quiz-setup'),
     retryWrong: ()=>{
-      if(quizSession.wrongWords.length===0){ toast('Xato so\'zlar yo\'q 🎉'); switchView('quiz-setup'); return; }
+      if(quizSession.wrongWords.length===0){ toast('Xato so\'zlar yo\'q'); switchView('quiz-setup'); return; }
       startQuizSession(quizSession.wrongWords);
     }
   });
@@ -1538,7 +1538,7 @@ function renderWriteSession(){
 
   el.innerHTML = `
     <div class="card">
-      <div class="session-top"><button class="exit-btn" data-exit type="button" aria-label="Mashqdan chiqish">✕</button>
+      <div class="session-top"><button class="exit-btn" data-exit type="button" aria-label="Mashqdan chiqish">${ico('x')}</button>
         <span>Yozib topish ${sessionProgressLabel(writeSession)}</span>
         <span>${sessionProgressPct(writeSession)}%</span>
       </div>
@@ -1567,7 +1567,7 @@ function renderWriteSession(){
     checked = true;
     const isCorrect = normalizeAnswer(input.value) === normalizeAnswer(backOf(word));
     input.classList.add(isCorrect ? 'correct' : 'wrong');
-    feedback.textContent = isCorrect ? "To'g'ri! ✅" : `Noto'g'ri. To'g'ri javob: ${backOf(word)}`;
+    feedback.textContent = isCorrect ? "To'g'ri!" : `Noto'g'ri. To'g'ri javob: ${backOf(word)}`;
     feedback.className = 'write-feedback ' + (isCorrect ? 'correct':'wrong');
     input.disabled = true;
     checkBtn.textContent = "Keyingi →";
@@ -1587,7 +1587,7 @@ function renderWriteResults(){
   renderGenericResults('view-write-results', writeSession, {
     restart: ()=> switchView('write-setup'),
     retryWrong: ()=>{
-      if(writeSession.wrongWords.length===0){ toast('Xato so\'zlar yo\'q 🎉'); switchView('write-setup'); return; }
+      if(writeSession.wrongWords.length===0){ toast('Xato so\'zlar yo\'q'); switchView('write-setup'); return; }
       startWriteSession(writeSession.wrongWords);
     }
   });
@@ -1750,39 +1750,39 @@ function renderSettings(){
 
   el.innerHTML = `
     <div class="card">
-      <h1>⚙️ Sozlamalar</h1>
+      <h1>${ico('gear')} Sozlamalar</h1>
       <p class="lead">Ilova sozlamalari va ma'lumotlarni boshqarish.</p>
     </div>
 
     <div class="card">
-      <h2>📲 Ilova sifatida o'rnatish</h2>
-      ${isStandalone() ? `<p class="lead">✅ Siz allaqachon ilova sifatida ishlatyapsiz.</p>` :
+      <h2>${ico('phone')} Ilova sifatida o'rnatish</h2>
+      ${isStandalone() ? `<p class="lead">${ico('check','ok')} Siz allaqachon ilova sifatida ishlatyapsiz.</p>` :
         isIOS() ? `
-          <p class="lead"><b>iPhone/iPad:</b> pastdagi <b>Ulashish</b> (⬆️) belgisini bosing → ro'yxatdan <b>"Bosh ekranga qo'shish"</b> (Add to Home Screen)ni tanlang.</p>
+          <p class="lead"><b>iPhone/iPad:</b> pastdagi <b>Ulashish</b> (${ico('share')}) belgisini bosing → ro'yxatdan <b>"Bosh ekranga qo'shish"</b> (Add to Home Screen)ni tanlang.</p>
         ` :
         deferredInstallPrompt ? `
           <p class="lead">Bir bosishda ekranga o'rnating — tezroq ochiladi, alohida ikonka bo'lib turadi.</p>
-          <button class="btn btn-primary" id="settingsInstallBtn">📲 O'rnatish</button>
+          <button class="btn btn-primary" id="settingsInstallBtn">${ico('download')} O'rnatish</button>
         ` : `
-          <p class="lead">Brauzeringiz menyusini (⋮ yoki ⋯ yoki ⬆️) oching va "Bosh ekranga qo'shish"ni tanlang.</p>
+          <p class="lead">Brauzeringiz menyusini (⋮ yoki ⋯ yoki ${ico('share')}) oching va "Bosh ekranga qo'shish"ni tanlang.</p>
         `}
     </div>
 
     <div class="card">
       <h2>Ko'rinish</h2>
       <label class="check-row" style="margin-top:10px;">
-        <input type="checkbox" id="darkModeCheck" ${theme==='dark'?'checked':''}> 🌙 Tungi rejim (dark mode)
+        <input type="checkbox" id="darkModeCheck" ${theme==='dark'?'checked':''}> ${ico('moon')} Tungi rejim (dark mode)
       </label>
     </div>
 
     <div class="card">
-      <h2>👤 Hisob</h2>
+      <h2>${ico('user')} Hisob</h2>
       ${currentUser ? `
         <p class="lead">Kirgan: <b>${escapeHTML(currentUser.email||currentUser.displayName||'')}</b></p>
         <button class="btn btn-danger" id="settingsSignOut">Chiqish</button>
       ` : `
         <p class="lead">Hozircha kirmagansiz. Kirsangiz, lug'atlaringiz istalgan qurilmadan mavjud bo'ladi.</p>
-        <button class="btn btn-primary" id="settingsSignIn">🔐 Google bilan kirish</button>
+        <button class="btn btn-primary" id="settingsSignIn">${ico('login')} Google bilan kirish</button>
       `}
     </div>
 
@@ -1790,35 +1790,35 @@ function renderSettings(){
       <h2>Ma'lumotlar</h2>
       <p class="lead">Jami ${state.decks.length} ta lug'at, ${totalWords} ta so'z.</p>
       <div class="btn-row" style="flex-direction:column;">
-        <button class="btn btn-ghost btn-block" id="exportBtn">💾 Zaxira nusxa yuklab olish (JSON)</button>
-        <button class="btn btn-ghost btn-block" id="importBtn">📥 Zaxiradan tiklash</button>
+        <button class="btn btn-ghost btn-block" id="exportBtn">${ico('save')} Zaxira nusxa yuklab olish (JSON)</button>
+        <button class="btn btn-ghost btn-block" id="importBtn">${ico('upload')} Zaxiradan tiklash</button>
         <input type="file" id="importFileInput" accept=".json" style="display:none;">
-        <button class="btn btn-outline btn-block" id="clearCacheBtn">🗑️ Keshni tozalash va yangilash</button>
-        <button class="btn btn-danger btn-block" id="resetAllBtn">⚠️ Hammasini tozalash</button>
+        <button class="btn btn-outline btn-block" id="clearCacheBtn">${ico('refresh')} Keshni tozalash va yangilash</button>
+        <button class="btn btn-danger btn-block" id="resetAllBtn">${ico('alert')} Hammasini tozalash</button>
       </div>
     </div>
 
     <div class="card">
-      <h2>💬 Taklif va fikringiz</h2>
+      <h2>${ico('chat')} Taklif va fikringiz</h2>
       <p class="lead">Ilovani yaxshilashimiz uchun fikringizni to'g'ridan-to'g'ri yozing:</p>
       <div class="btn-row" style="flex-direction:column;">
-        <a class="btn btn-primary btn-block" href="https://t.me/yuuvsuf" target="_blank" rel="noopener">📩 Telegram: @yuuvsuf</a>
-        <a class="btn btn-ghost btn-block" href="https://instagram.com/yunusovvyusuf" target="_blank" rel="noopener">📸 Instagram: @yunusovvyusuf</a>
+        <a class="btn btn-primary btn-block" href="https://t.me/yuuvsuf" target="_blank" rel="noopener">${ico('mail')} Telegram: @yuuvsuf</a>
+        <a class="btn btn-ghost btn-block" href="https://instagram.com/yunusovvyusuf" target="_blank" rel="noopener">${ico('camera')} Instagram: @yunusovvyusuf</a>
       </div>
     </div>
 
     <div class="card">
-      <h2>💙 Homiylik (Donat)</h2>
+      <h2>${ico('heart')} Homiylik (Donat)</h2>
       <p class="lead">Ilova sizga foydali bo'lsa, rivojlantirishni qo'llab-quvvatlashingiz mumkin.</p>
       <div class="donate-box">
         <div class="donate-card-number" id="donateCardNumber">5614 6847 0539 1512</div>
         <div class="donate-card-name">Uzcard / Payme — Yunusov Yusuf</div>
       </div>
-      <button class="btn btn-ghost btn-block" id="copyCardBtn" style="margin-top:12px;">📋 Karta raqamini nusxalash</button>
+      <button class="btn btn-ghost btn-block" id="copyCardBtn" style="margin-top:12px;">${ico('copy')} Karta raqamini nusxalash</button>
     </div>
 
     <div class="card">
-      <h2>ℹ️ Ilova haqida</h2>
+      <h2>${ico('info')} Ilova haqida</h2>
       <p class="lead">${APP_VERSION} — istalgan tildagi lug'atni oson yodlash uchun.</p>
     </div>
   `;
@@ -1847,7 +1847,7 @@ function renderSettings(){
   document.getElementById('copyCardBtn').addEventListener('click', ()=>{
     const cardNum = '5614684705391512';
     navigator.clipboard.writeText(cardNum)
-      .then(()=> toast('Karta raqami nusxalandi ✅'))
+      .then(()=> toast('Karta raqami nusxalandi'))
       .catch(()=> toast("Nusxalab bo'lmadi, qo'lda yozib oling"));
   });
 }
@@ -1867,7 +1867,7 @@ function exportBackup(){
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  toast('Zaxira nusxa yuklab olindi ✅');
+  toast('Zaxira nusxa yuklab olindi');
 }
 
 function importBackupFile(e){
@@ -1879,11 +1879,11 @@ function importBackupFile(e){
     try{
       data = JSON.parse(reader.result);
     }catch(err){
-      toast('Fayl noto\'g\'ri formatda ❌');
+      toast('Fayl noto\'g\'ri formatda');
       return;
     }
     if(!data || !Array.isArray(data.decks)){
-      toast('Fayl noto\'g\'ri formatda ❌');
+      toast('Fayl noto\'g\'ri formatda');
       return;
     }
     openModal(`
@@ -1898,7 +1898,7 @@ function importBackupFile(e){
       state.decks = data.decks;
       saveDecks();
       closeModal();
-      toast('Zaxiradan tiklandi ✅');
+      toast('Zaxiradan tiklandi');
       switchView('home');
     };
     document.getElementById('btnCancelRestore').onclick = closeModal;
@@ -1973,7 +1973,7 @@ function scheduleCloudSave(){
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }).catch(err=>{
       console.error(err);
-      toast('Bulutga saqlashda xatolik ⚠️');
+      toast('Bulutga saqlashda xatolik');
     });
   }, CLOUD_DEBOUNCE_MS);
 }
@@ -1986,7 +1986,7 @@ function renderAuthUI(){
     const photo = currentUser.photoURL;
     btn.innerHTML = photo
       ? `<img src="${photo}" alt="${escapeHTML(currentUser.displayName||'')}">`
-      : `<span style="padding:0 8px;">👤</span>`;
+      : `<span style="padding:0 8px;">${ico('user')}</span>`;
     btn.title = currentUser.displayName || currentUser.email || '';
     btn.onclick = ()=> openAccountModal();
   } else {
@@ -2002,7 +2002,7 @@ function signInWithGoogle(){
   auth.signInWithPopup(provider).catch(err=>{
     console.error(err);
     if(err.code !== 'auth/popup-closed-by-user'){
-      toast('Kirishda xatolik ⚠️');
+      toast('Kirishda xatolik');
     }
   });
 }
@@ -2052,11 +2052,11 @@ async function handleLoginSync(user){
       state.decks = cloudDecks;
       saveDecks(true);
       renderCurrentView();
-      toast("Bulutdagi lug'atlar yuklandi ☁️");
+      toast("Bulutdagi lug'atlar yuklandi");
       markSynced(user.uid);
     } else if(!cloudDecks.length && localDecks.length){
       await docRef.set({ decks: localDecks, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-      toast("Lug'atlaringiz bulutga saqlandi ☁️");
+      toast("Lug'atlaringiz bulutga saqlandi");
       markSynced(user.uid);
     } else {
       markSynced(user.uid);
@@ -2064,7 +2064,7 @@ async function handleLoginSync(user){
     startRealtimeSync(user.uid);
   }catch(e){
     console.error(e);
-    toast('Bulut bilan sinxronlashda xatolik ⚠️');
+    toast('Bulut bilan sinxronlashda xatolik');
   }
 }
 function markSynced(uid){
@@ -2093,7 +2093,7 @@ function startRealtimeSync(uid){
     state.decks = cloudDecks;
     saveDecks(true); // faqat localStorage, qayta bulutga yozishni oldini olish uchun
     renderCurrentView();
-    toast("Lug'atlar yangilandi (boshqa qurilmadan) 🔄");
+    toast("Lug'atlar yangilandi (boshqa qurilmadan)");
   }, err=>{ console.error(err); });
 }
 function stopRealtimeSync(){
@@ -2105,9 +2105,9 @@ function openSyncChoiceModal(cloudDecks, localDecks, docRef, uid){
     <h2>Ikkita lug'at to'plami topildi</h2>
     <p class="lead">Bu qurilmada ${localDecks.length} ta, bulutda esa ${cloudDecks.length} ta lug'at bor. Nima qilamiz?</p>
     <div class="btn-row" style="flex-direction:column;">
-      <button class="btn btn-primary btn-block" id="btnUseCloud">☁️ Bulutdagini ishlatish</button>
-      <button class="btn btn-ghost btn-block" id="btnUseLocal">📱 Bu qurilmadagini ishlatish</button>
-      <button class="btn btn-outline btn-block" id="btnMergeBoth">🔀 Ikkalasini birlashtirish</button>
+      <button class="btn btn-primary btn-block" id="btnUseCloud">${ico('cloud')} Bulutdagini ishlatish</button>
+      <button class="btn btn-ghost btn-block" id="btnUseLocal">${ico('phone')} Bu qurilmadagini ishlatish</button>
+      <button class="btn btn-outline btn-block" id="btnMergeBoth">${ico('merge')} Ikkalasini birlashtirish</button>
     </div>
   `);
   document.getElementById('btnUseCloud').onclick = ()=>{
@@ -2116,13 +2116,13 @@ function openSyncChoiceModal(cloudDecks, localDecks, docRef, uid){
     markSynced(uid);
     closeModal();
     renderCurrentView();
-    toast('Bulutdagi lug\'atlar tanlandi ☁️');
+    toast('Bulutdagi lug\'atlar tanlandi');
   };
   document.getElementById('btnUseLocal').onclick = async ()=>{
     await docRef.set({ decks: localDecks, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     markSynced(uid);
     closeModal();
-    toast('Qurilmadagi lug\'atlar bulutga saqlandi 📱');
+    toast('Qurilmadagi lug\'atlar bulutga saqlandi');
   };
   document.getElementById('btnMergeBoth').onclick = async ()=>{
     const seen = new Set();
@@ -2135,7 +2135,7 @@ function openSyncChoiceModal(cloudDecks, localDecks, docRef, uid){
     markSynced(uid);
     closeModal();
     renderCurrentView();
-    toast('Lug\'atlar birlashtirildi 🔀');
+    toast('Lug\'atlar birlashtirildi');
   };
 }
 
