@@ -246,7 +246,7 @@ document.getElementById('modalOverlay').addEventListener('click', (e)=>{
 });
 
 /* ================= SVG ikonlar ================= */
-const ICONS = {"layers": "<rect x=\"3\" y=\"6\" width=\"14\" height=\"12\" rx=\"2\"/><path d=\"M7 3h12a2 2 0 012 2v10\"/>", "help": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1-1.5 2\"/><path d=\"M12 17h.01\"/>", "pen": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z\"/>", "book": "<path d=\"M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z\"/>", "file": "<path d=\"M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h6\"/>", "link": "<path d=\"M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1\"/>", "check": "<path d=\"M20 6L9 17l-5-5\"/>", "x": "<path d=\"M18 6L6 18M6 6l12 12\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.5 2.9 1-6.1L3.1 9.5l6.1-.9z\"/>", "flame": "<path d=\"M12 3c1 3.5 5 5.5 5 10a5 5 0 01-10 0c0-2 1-3.2 2-4 0 1.8 1 2.5 2 2.5 0-3-1-5 1-8.5z\"/>", "play": "<path d=\"M7 4l13 8-13 8z\"/>", "repeat": "<path d=\"M17 2l4 4-4 4\"/><path d=\"M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4\"/><path d=\"M21 13v2a3 3 0 01-3 3H3\"/>", "home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/>", "alert": "<path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4M12 17h.01\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21a8 8 0 0116 0\"/>", "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/>", "moon": "<path d=\"M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z\"/>", "gear": "<path d=\"M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "swap": "<path d=\"M8 3L4 7l4 4\"/><path d=\"M4 7h16\"/><path d=\"M16 21l4-4-4-4\"/><path d=\"M20 17H4\"/>", "chev": "<path d=\"M9 6l6 6-6 6\"/>"};
+const ICONS = {"layers": "<rect x=\"3\" y=\"6\" width=\"14\" height=\"12\" rx=\"2\"/><path d=\"M7 3h12a2 2 0 012 2v10\"/>", "help": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1-1.5 2\"/><path d=\"M12 17h.01\"/>", "pen": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z\"/>", "book": "<path d=\"M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z\"/>", "file": "<path d=\"M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h6\"/>", "link": "<path d=\"M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1\"/>", "check": "<path d=\"M20 6L9 17l-5-5\"/>", "x": "<path d=\"M18 6L6 18M6 6l12 12\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.5 2.9 1-6.1L3.1 9.5l6.1-.9z\"/>", "flame": "<path d=\"M12 3c1 3.5 5 5.5 5 10a5 5 0 01-10 0c0-2 1-3.2 2-4 0 1.8 1 2.5 2 2.5 0-3-1-5 1-8.5z\"/>", "play": "<path d=\"M7 4l13 8-13 8z\"/>", "repeat": "<path d=\"M17 2l4 4-4 4\"/><path d=\"M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4\"/><path d=\"M21 13v2a3 3 0 01-3 3H3\"/>", "home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/>", "alert": "<path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4M12 17h.01\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21a8 8 0 0116 0\"/>", "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/>", "moon": "<path d=\"M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z\"/>", "gear": "<path d=\"M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "swap": "<path d=\"M8 3L4 7l4 4\"/><path d=\"M4 7h16\"/><path d=\"M16 21l4-4-4-4\"/><path d=\"M20 17H4\"/>", "back": "<path d=\"M15 6l-6 6 6 6\"/>", "chev": "<path d=\"M9 6l6 6-6 6\"/>"};
 function ico(n, cls){
   return `<svg class="ico ${cls||''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||''}</svg>`;
 }
@@ -444,7 +444,7 @@ function switchView(viewName){
   state.view = viewName;
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.dataset.view === viewName));
   const tabMap = {
-    'home':'home','dictionary':'dictionary','flashcard-setup':'flashcard-setup','flashcard-session':'flashcard-setup',
+    'home':'home','dictionary':'home','flashcard-setup':'flashcard-setup','flashcard-session':'flashcard-setup',
     'flashcard-results':'flashcard-setup','quiz-setup':'quiz-setup','quiz-session':'quiz-setup','quiz-results':'quiz-setup',
     'write-setup':'write-setup','write-session':'write-setup','write-results':'write-setup','stats':'stats','settings':'settings'
   };
@@ -947,6 +947,7 @@ function renderDictionary(){
 
   el.innerHTML = `
     <div class="card">
+      <button class="back-btn" data-back type="button">${ico('back')} Bosh sahifa</button>
       <h1>Lug'at</h1>
       <div class="tabs" style="padding:6px 0 16px;margin:0 -4px;">
         <button class="filter-chip ${state.dictDeckFilter==='all'?'active':''}" data-deckf="all">Barcha lug'atlar</button>
@@ -964,15 +965,16 @@ function renderDictionary(){
         ${list.map(w => `
           <div class="word-card">
             ${state.dictDeckFilter==='all' ? `<div class="deck-badge">${escapeHTML(deckOf(w)?.name||'')}</div>` : ''}
-            <button class="fav ${w.favorite?'active':''}" data-fav="${w.id}" style="${state.dictDeckFilter==='all'?'top:38px;':''}">${ico('star', w.favorite?'filled':'')}</button>
+            <button class="fav ${w.favorite?'active':''}" data-fav="${w.id}" aria-label="Sevimli">${ico('star', w.favorite?'filled':'')}</button>
             <div class="status-dot status-${w.status}"></div>
-            <div class="card-term ${langClass(frontOf(w))}" style="${state.dictDeckFilter==='all'?'margin-top:14px;':''}">${escapeHTML(frontOf(w))}</div>
+            <div class="card-term ${langClass(frontOf(w))}" >${escapeHTML(frontOf(w))}</div>
             <div class="tr">${escapeHTML(backOf(w))}</div>
           </div>
         `).join('') || `<p style="color:var(--ink-soft);">Hech narsa topilmadi.</p>`}
       </div>
     </div>
   `;
+  el.querySelector('[data-back]').addEventListener('click', ()=> switchView('home'));
   el.querySelector('#dictSearch').addEventListener('input', e=>{ state.dictSearch = e.target.value; renderDictionary(); });
   if(_hadFocus){ const s = el.querySelector('#dictSearch'); s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
   el.querySelectorAll('[data-deckf]').forEach(c=>{
@@ -1073,11 +1075,11 @@ function renderSetupView(viewId, title, desc, onStart, mode, minWordsRequired){
       <div class="option-group">
         <label class="group-label">3. Qaysi so'zlardan tanlansin?</label>
         <div class="check-list">
-          <label class="check-row"><input type="checkbox" value="all" ${(!prefs||!prefs.sources||prefs.sources.includes('all'))?'checked':''}> Hammasidan (${allWords.length})</label>
-          <label class="check-row"><input type="checkbox" value="new" ${prefs&&prefs.sources&&prefs.sources.includes('new')?'checked':''}> Belgilanmaganlardan (${newCount})</label>
-          <label class="check-row"><input type="checkbox" value="unknown" ${prefs&&prefs.sources&&prefs.sources.includes('unknown')?'checked':''}> Bilmaganlardan (${unknownCount})</label>
-          <label class="check-row"><input type="checkbox" value="known" ${prefs&&prefs.sources&&prefs.sources.includes('known')?'checked':''}> Bilganlardan (${knownCount})</label>
-          <label class="check-row"><input type="checkbox" value="favorite" ${prefs&&prefs.sources&&prefs.sources.includes('favorite')?'checked':''}> Sevimlilardan (${favCount})</label>
+          <label class="check-row"><input type="checkbox" value="all" ${(!prefs||!prefs.sources||prefs.sources.includes('all'))?'checked':''}> Hammasidan (<span data-cnt="all">${allWords.length}</span>)</label>
+          <label class="check-row"><input type="checkbox" value="new" ${prefs&&prefs.sources&&prefs.sources.includes('new')?'checked':''}> Belgilanmaganlardan (<span data-cnt="new">${newCount}</span>)</label>
+          <label class="check-row"><input type="checkbox" value="unknown" ${prefs&&prefs.sources&&prefs.sources.includes('unknown')?'checked':''}> Bilmaganlardan (<span data-cnt="unknown">${unknownCount}</span>)</label>
+          <label class="check-row"><input type="checkbox" value="known" ${prefs&&prefs.sources&&prefs.sources.includes('known')?'checked':''}> Bilganlardan (<span data-cnt="known">${knownCount}</span>)</label>
+          <label class="check-row"><input type="checkbox" value="favorite" ${prefs&&prefs.sources&&prefs.sources.includes('favorite')?'checked':''}> Sevimlilardan (<span data-cnt="favorite">${favCount}</span>)</label>
         </div>
       </div>
 
@@ -1097,6 +1099,18 @@ function renderSetupView(viewId, title, desc, onStart, mode, minWordsRequired){
     renderSetupView(viewId, title, desc, onStart, mode, minWordsRequired);
   });
 
+  const updCounts = ()=>{
+    const ids = Array.from(el.querySelectorAll('.deckChk:checked')).map(c=>c.value);
+    const ws = allWordsFlat().filter(w=>ids.includes(w.deckId));
+    const cnt = { all: ws.length, new: ws.filter(w=>w.status==='new').length, unknown: ws.filter(w=>w.status==='unknown').length,
+                  known: ws.filter(w=>w.status==='known').length, favorite: ws.filter(w=>w.favorite).length };
+    el.querySelectorAll('[data-cnt]').forEach(s=>{
+      s.textContent = cnt[s.dataset.cnt];
+      s.closest('label').classList.toggle('is-empty', cnt[s.dataset.cnt] === 0);
+    });
+  };
+  el.querySelectorAll('.deckChk').forEach(c=>c.addEventListener('change', updCounts));
+  updCounts();
   const sourceChecks = el.querySelectorAll('.check-list input');
   sourceChecks.forEach(c=>{
     c.addEventListener('change', ()=>{

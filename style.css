@@ -587,3 +587,13 @@ input,select,textarea{color:var(--ink)}
 .dir-btn:active{transform:scale(.96)}
 .dir-btn .ico{width:18px;height:18px}
 [data-theme="dark"] .dir-btn{color:var(--gold);border-color:var(--gold)}
+
+/* v3.4: so'z kartasi, orqaga tugmasi, sonlar */
+.word-card{padding:18px 54px 18px 18px}
+.word-card .fav{top:8px;right:8px;left:auto;width:38px;height:38px;display:grid;place-items:center;opacity:.7}
+.word-card .fav.active{opacity:1}
+.word-card .status-dot{top:auto;bottom:16px;right:18px}
+.word-card .deck-badge{margin-bottom:6px}
+.back-btn{display:inline-flex;align-items:center;gap:4px;background:none;border:0;color:var(--ink-soft);font-weight:700;font-size:14px;padding:6px 8px 6px 0;margin-bottom:6px;cursor:pointer;min-height:40px}
+.back-btn .ico{width:18px;height:18px}
+.check-row.is-empty{opacity:.5}
