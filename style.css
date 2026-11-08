@@ -661,3 +661,8 @@ button.srs-badge{cursor:pointer;font-family:inherit}
 .day-word{display:flex;align-items:baseline;gap:10px;padding:9px 12px;border-radius:12px;background:var(--sand-2)}
 .day-word .status-dot{flex:none;width:9px;height:9px;border-radius:50%;align-self:center}
 .day-word em{margin-left:auto;font-style:normal;color:var(--ink-soft);font-size:14px;text-align:right}
+
+/* v3.9: so'zlar ro'yxatini yig'ish */
+.day-more{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.link-more{min-height:44px;padding:9px 18px;border-radius:999px;border:1.5px solid var(--teal);background:var(--grad-soft);color:var(--teal-deep);font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
+[data-theme="dark"] .link-more{color:var(--gold);border-color:var(--gold)}

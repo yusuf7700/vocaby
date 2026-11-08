@@ -525,7 +525,7 @@ function switchView(viewName){
     if(on) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current');
   });
   document.body.dataset.mode = /-session$/.test(viewName) ? 'session' : '';
-  if(viewName !== 'stats'){ state.statsMonth = null; state.statsDay = null; }
+  if(viewName !== 'stats'){ state.statsMonth = null; state.statsDay = null; state.dayShown = 5; }
   window.scrollTo({top:0, behavior:'smooth'});
   renderCurrentView();
 }
@@ -1663,6 +1663,7 @@ function renderStats(){
   const [dy, dm, dd] = dk.split('-').map(Number);
   const dAcc = dl.totalCount ? Math.round((dl.correctCount/dl.totalCount)*100) : 0;
   const dWords = allWords.filter(w => w.stats && w.stats.lastReviewed === dk);
+  const shown = state.dayShown || 5;
   const dayHTML = `<div class="card" id="dayDetail">
       <h2>${dd}-${MON[dm-1].toLowerCase()}${dk===key ? ' · bugun' : ''}</h2>
       ${dl.totalCount ? `
@@ -1673,8 +1674,8 @@ function renderStats(){
         <div class="stat-box"><div class="num">${dAcc}%</div><div class="label">${dl.correctCount} to'g'ri · ${dl.totalCount-dl.correctCount} xato</div></div>
       </div>` : `<p class="lead">Bu kuni mashq qilinmagan.</p>`}
       ${dWords.length ? `<h3 class="day-sub">Shu kuni oxirgi marta ko'rilgan so'zlar (${dWords.length})</h3>
-      <div class="day-words">${dWords.slice(0,40).map(w=>`<div class="day-word"><span class="status-dot status-${w.status}"></span><span class="${langClass(frontOf(w))}">${escapeHTML(frontOf(w))}</span><em>${escapeHTML(backOf(w))}</em></div>`).join('')}</div>
-      ${dWords.length>40 ? `<p class="cal-sum">va yana ${dWords.length-40} ta so'z</p>` : ''}` : ''}
+      <div class="day-words">${dWords.slice(0, shown).map(w=>`<div class="day-word"><span class="status-dot status-${w.status}"></span><span class="${langClass(frontOf(w))}">${escapeHTML(frontOf(w))}</span><em>${escapeHTML(backOf(w))}</em></div>`).join('')}</div>
+      ${(dWords.length>shown || shown>5) ? `<div class="day-more">${dWords.length>shown ? `<button type="button" class="link-more" id="dayMore">Yana ko'rish (${Math.min(10, dWords.length-shown)} ta)</button>` : ''}${shown>5 ? `<button type="button" class="link-more" id="dayLess">Yig'ish</button>` : ''}</div>` : ''}` : ''}
       ${dl.reviewedCount ? `<button class="btn btn-outline btn-block" id="fixReviewed" type="button" style="margin-top:16px">"Takrorlandi" sonini 0 ga tushirish</button>` : ''}
     </div>`;
 
@@ -1715,8 +1716,11 @@ function renderStats(){
     renderStats();
   }));
   el.querySelectorAll('[data-day]').forEach(b=>b.addEventListener('click', ()=>{
-    state.statsDay = b.dataset.day; state._scrollDay = true; renderStats();
+    state.statsDay = b.dataset.day; state.dayShown = 5; state._scrollDay = true; renderStats();
   }));
+  const dm_ = el.querySelector('#dayMore'), dl_ = el.querySelector('#dayLess');
+  if(dm_) dm_.addEventListener('click', ()=>{ state.dayShown = (state.dayShown||5) + 10; renderStats(); });
+  if(dl_) dl_.addEventListener('click', ()=>{ state.dayShown = 5; renderStats(); });
   const fx = el.querySelector('#fixReviewed');
   if(fx) fx.addEventListener('click', ()=>{
     if(!fx.dataset.sure){ fx.dataset.sure = '1'; fx.textContent = 'Ha, 0 ga tushirish'; return; }
