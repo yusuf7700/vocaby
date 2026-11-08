@@ -525,6 +525,7 @@ function switchView(viewName){
     if(on) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current');
   });
   document.body.dataset.mode = /-session$/.test(viewName) ? 'session' : '';
+  if(viewName !== 'stats'){ state.statsMonth = null; state.statsDay = null; }
   window.scrollTo({top:0, behavior:'smooth'});
   renderCurrentView();
 }
@@ -1632,6 +1633,51 @@ function renderStats(){
     return `<div class="deck-prog"><div class="dp-top"><span>${escapeHTML(d.name)}</span><b>${k}/${d.words.length}</b></div><div class="progress-bar-track"><div class="progress-bar-fill" style="width:${p}%"></div></div></div>`;
   }).join('');
 
+  const MON = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+  state.statsMonth = state.statsMonth || key.slice(0,7);
+  state.statsDay = state.statsDay || key;
+  const [cy, cm] = state.statsMonth.split('-').map(Number);
+  const dim = new Date(cy, cm, 0).getDate();
+  const lead = (new Date(cy, cm-1, 1).getDay() + 6) % 7;
+  let cells = '', mDays = 0, mAns = 0;
+  for(let i=0;i<lead;i++) cells += '<i class="cal-c pad"></i>';
+  for(let d=1; d<=dim; d++){
+    const k = `${cy}-${String(cm).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const n = (log[k] && log[k].totalCount) || 0;
+    if(n){ mDays++; mAns += n; }
+    const lv = n===0 ? 0 : n<5 ? 1 : n<15 ? 2 : n<30 ? 3 : 4;
+    cells += `<button type="button" class="cal-c l${lv}${k===key?' today':''}${k===state.statsDay?' sel':''}" data-day="${k}" aria-label="${d}-${MON[cm-1]}: ${n} ta javob"><span>${d}</span>${n?`<small>${n}</small>`:''}</button>`;
+  }
+  const calHTML = `<div class="card">
+      <div class="cal-head">
+        <button type="button" class="cal-nav" data-cal="-1" aria-label="Oldingi oy">${ico('back')}</button>
+        <h2>${MON[cm-1]} ${cy}</h2>
+        <button type="button" class="cal-nav" data-cal="1" aria-label="Keyingi oy">${ico('chev')}</button>
+      </div>
+      <div class="cal-week">${['Du','Se','Ch','Pa','Ju','Sh','Ya'].map(x=>`<span>${x}</span>`).join('')}</div>
+      <div class="cal-grid">${cells}</div>
+      <p class="cal-sum">Shu oyda: <b>${mDays}</b> kun faol, <b>${mAns}</b> ta javob. Kunni bossangiz, tafsiloti pastda chiqadi.</p>
+    </div>`;
+  const dk = state.statsDay;
+  const dl = log[dk] || { newCount:0, reviewedCount:0, correctCount:0, totalCount:0 };
+  const [dy, dm, dd] = dk.split('-').map(Number);
+  const dAcc = dl.totalCount ? Math.round((dl.correctCount/dl.totalCount)*100) : 0;
+  const dWords = allWords.filter(w => w.stats && w.stats.lastReviewed === dk);
+  const dayHTML = `<div class="card" id="dayDetail">
+      <h2>${dd}-${MON[dm-1].toLowerCase()}${dk===key ? ' · bugun' : ''}</h2>
+      ${dl.totalCount ? `
+      <div class="stats-grid">
+        <div class="stat-box"><div class="num">${dl.newCount}</div><div class="label">Yangi</div></div>
+        <div class="stat-box"><div class="num">${dl.reviewedCount}</div><div class="label">Takrorlandi</div></div>
+        <div class="stat-box"><div class="num">${dl.totalCount}</div><div class="label">Javoblar</div></div>
+        <div class="stat-box"><div class="num">${dAcc}%</div><div class="label">${dl.correctCount} to'g'ri · ${dl.totalCount-dl.correctCount} xato</div></div>
+      </div>` : `<p class="lead">Bu kuni mashq qilinmagan.</p>`}
+      ${dWords.length ? `<h3 class="day-sub">Shu kuni oxirgi marta ko'rilgan so'zlar (${dWords.length})</h3>
+      <div class="day-words">${dWords.slice(0,40).map(w=>`<div class="day-word"><span class="status-dot status-${w.status}"></span><span class="${langClass(frontOf(w))}">${escapeHTML(frontOf(w))}</span><em>${escapeHTML(backOf(w))}</em></div>`).join('')}</div>
+      ${dWords.length>40 ? `<p class="cal-sum">va yana ${dWords.length-40} ta so'z</p>` : ''}` : ''}
+      ${dl.reviewedCount ? `<button class="btn btn-outline btn-block" id="fixReviewed" type="button" style="margin-top:16px">"Takrorlandi" sonini 0 ga tushirish</button>` : ''}
+    </div>`;
+
   el.innerHTML = `
     <div class="card">
       <h1>Statistika</h1>
@@ -1655,15 +1701,30 @@ function renderStats(){
       </div>
     </div>
 
-    <div class="card">
-      <h2>Faollik (12 hafta)</h2>
-      <div class="heatmap">${hm.join('')}</div>
-    </div>
+    ${calHTML}
+    ${dayHTML}
     <div class="card">
       <h2>Lug'atlar bo'yicha</h2>
       ${deckRows}
     </div>
   `;
+  el.querySelectorAll('[data-cal]').forEach(b=>b.addEventListener('click', ()=>{
+    const [y, m] = state.statsMonth.split('-').map(Number);
+    const d = new Date(y, m-1+Number(b.dataset.cal), 1);
+    state.statsMonth = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    renderStats();
+  }));
+  el.querySelectorAll('[data-day]').forEach(b=>b.addEventListener('click', ()=>{
+    state.statsDay = b.dataset.day; state._scrollDay = true; renderStats();
+  }));
+  const fx = el.querySelector('#fixReviewed');
+  if(fx) fx.addEventListener('click', ()=>{
+    if(!fx.dataset.sure){ fx.dataset.sure = '1'; fx.textContent = 'Ha, 0 ga tushirish'; return; }
+    const lg = loadLog();
+    if(lg[state.statsDay]){ lg[state.statsDay].reviewedCount = 0; saveLog(lg); }
+    renderStats(); toast('Tuzatildi');
+  });
+  if(state._scrollDay){ state._scrollDay = false; const dc = el.querySelector('#dayDetail'); if(dc) dc.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
 }
 
 /* ================= SOZLAMALAR ================= */

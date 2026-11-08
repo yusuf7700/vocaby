@@ -637,3 +637,27 @@ button.srs-badge{cursor:pointer;font-family:inherit}
 .srs-info{margin:8px 0 18px;line-height:1.55;font-size:15.5px}
 .srs-info p{margin:0 0 10px}
 .srs-ladder{font-size:13.5px;color:var(--ink-soft);background:var(--sand-2);padding:10px 12px;border-radius:12px}
+
+/* v3.8: oylik kalendar */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-head h2{margin:0}
+.cal-nav{width:46px;height:46px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.cal-nav:hover{background:var(--sand-2)}
+.cal-nav .ico{width:20px;height:20px}
+.cal-week,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-week span{text-align:center;font-size:12px;font-weight:700;color:var(--ink-soft);padding-bottom:4px}
+.cal-c{aspect-ratio:1;min-width:0;padding:0;border-radius:12px;border:2px solid transparent;background:var(--sand-2);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.cal-c small{font-size:10px;font-weight:700;opacity:.9}
+.cal-c.pad{background:transparent;cursor:default}
+.cal-c.l1{background:color-mix(in srgb,var(--teal) 26%,var(--sand-2))}
+.cal-c.l2{background:color-mix(in srgb,var(--teal) 52%,var(--sand-2))}
+.cal-c.l3{background:var(--teal);color:#fff}
+.cal-c.l4{background:var(--teal-deep);color:#fff}
+.cal-c.today{border-color:var(--amber)}
+.cal-c.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--ink)}
+.cal-sum{margin:14px 0 0;color:var(--ink-soft);font-size:14px;line-height:1.5}
+.day-sub{margin:20px 0 0;font-size:15px}
+.day-words{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.day-word{display:flex;align-items:baseline;gap:10px;padding:9px 12px;border-radius:12px;background:var(--sand-2)}
+.day-word .status-dot{flex:none;width:9px;height:9px;border-radius:50%;align-self:center}
+.day-word em{margin-left:auto;font-style:normal;color:var(--ink-soft);font-size:14px;text-align:right}
