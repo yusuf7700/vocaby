@@ -1,12 +1,13 @@
 /* ===================== VocabY Service Worker ===================== */
 /* Bu fayl saytni internetsiz ham ishlaydigan qiladi (asosiy fayllarni keshlaydi). */
 
-const CACHE_NAME = 'vocaby-cache-v5';
+const CACHE_NAME = 'vocaby-cache-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './tts.js',
   './firebase-init.js',
   './manifest.json',
   './logo.png'

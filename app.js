@@ -44,6 +44,13 @@ function escapeHTML(s){
 function wordSpan(text, sizeClass){
   return `<span class="${sizeClass} ${langClass(text)}">${escapeHTML(text)}</span>`;
 }
+function ttsBtn(id, side, cls){ return window.TTS ? TTS.btn(id, side, cls) : ''; }
+function ttsTxt(src, side, deckId){ return window.TTS ? TTS.btnText(src, side, deckId, 'sm') : ''; }
+function flipCard(c){
+  if(!c) return;
+  c.classList.toggle('flipped');
+  if(window.TTS) TTS.onFlip(c.classList.contains('flipped'));
+}
 function todayKey(){
   return new Date().toISOString().slice(0,10);
 }
@@ -246,7 +253,7 @@ document.getElementById('modalOverlay').addEventListener('click', (e)=>{
 });
 
 /* ================= SVG ikonlar ================= */
-const ICONS = {"layers": "<rect x=\"3\" y=\"6\" width=\"14\" height=\"12\" rx=\"2\"/><path d=\"M7 3h12a2 2 0 012 2v10\"/>", "help": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1-1.5 2\"/><path d=\"M12 17h.01\"/>", "pen": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z\"/>", "book": "<path d=\"M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z\"/>", "file": "<path d=\"M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h6\"/>", "link": "<path d=\"M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1\"/>", "check": "<path d=\"M20 6L9 17l-5-5\"/>", "x": "<path d=\"M18 6L6 18M6 6l12 12\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.5 2.9 1-6.1L3.1 9.5l6.1-.9z\"/>", "flame": "<path d=\"M12 3c1 3.5 5 5.5 5 10a5 5 0 01-10 0c0-2 1-3.2 2-4 0 1.8 1 2.5 2 2.5 0-3-1-5 1-8.5z\"/>", "play": "<path d=\"M7 4l13 8-13 8z\"/>", "repeat": "<path d=\"M17 2l4 4-4 4\"/><path d=\"M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4\"/><path d=\"M21 13v2a3 3 0 01-3 3H3\"/>", "home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/>", "alert": "<path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4M12 17h.01\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21a8 8 0 0116 0\"/>", "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/>", "moon": "<path d=\"M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z\"/>", "gear": "<path d=\"M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "swap": "<path d=\"M8 3L4 7l4 4\"/><path d=\"M4 7h16\"/><path d=\"M16 21l4-4-4-4\"/><path d=\"M20 17H4\"/>", "back": "<path d=\"M15 6l-6 6 6 6\"/>", "trash": "<path d=\"M3 6h18\"/><path d=\"M8 6V4h8v2\"/><path d=\"M19 6l-1 14H6L5 6\"/><path d=\"M10 11v6M14 11v6\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "chev": "<path d=\"M9 6l6 6-6 6\"/>", "download": "<path d=\"M12 3v12M7 10l5 5 5-5\"/><path d=\"M4 19h16\"/>", "phone": "<rect x=\"6\" y=\"2\" width=\"12\" height=\"20\" rx=\"3\"/><path d=\"M11 18h2\"/>", "share": "<path d=\"M12 15V3M8 7l4-4 4 4\"/><path d=\"M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7\"/>", "copy": "<rect x=\"9\" y=\"9\" width=\"12\" height=\"12\" rx=\"2\"/><path d=\"M5 15V5a2 2 0 012-2h10\"/>", "sparkles": "<path d=\"M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z\"/><path d=\"M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z\"/>", "cloud": "<path d=\"M7 18a4.5 4.5 0 01-.6-8.96A6 6 0 0118 10a4 4 0 01-1 8z\"/>", "merge": "<circle cx=\"6\" cy=\"5\" r=\"2.5\"/><circle cx=\"6\" cy=\"19\" r=\"2.5\"/><circle cx=\"18\" cy=\"12\" r=\"2.5\"/><path d=\"M6 7.5v9M8 6c5 0 8 2.5 8 4.5M8 18c5 0 8-2.5 8-4.5\"/>", "login": "<path d=\"M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4\"/><path d=\"M10 17l5-5-5-5M15 12H3\"/>", "save": "<path d=\"M5 3h11l4 4v12a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z\"/><path d=\"M7 3v5h8M7 21v-7h10v7\"/>", "upload": "<path d=\"M12 15V3M7 8l5-5 5 5\"/><path d=\"M4 19h16\"/>", "mail": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"M3 7l9 6 9-6\"/>", "camera": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"17.5\" cy=\"6.5\" r=\".6\"/>", "heart": "<path d=\"M12 20s-7-4.4-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.6-9 9-9 9z\"/>", "info": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v6M12 7.5h.01\"/>", "chat": "<path d=\"M21 12a8 8 0 01-11.6 7.1L3 21l1.9-5.4A8 8 0 1121 12z\"/>", "edit": "<path d=\"M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16z\"/><path d=\"M13.5 6.5l4 4\"/>", "gift": "<rect x=\"3\" y=\"8\" width=\"18\" height=\"4\" rx=\"1\"/><path d=\"M5 12v8h14v-8M12 8v12\"/><path d=\"M12 8C10 8 8 7 8 5.5S10.5 3 12 8zM12 8c2 0 4-1 4-2.5S13.5 3 12 8z\"/>", "shield": "<path d=\"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z\"/><path d=\"M9 12l2 2 4-4\"/>", "refresh": "<path d=\"M20 11a8 8 0 00-14-4L4 9\"/><path d=\"M4 4v5h5\"/><path d=\"M4 13a8 8 0 0014 4l2-2\"/><path d=\"M20 20v-5h-5\"/>"};
+const ICONS = {"layers": "<rect x=\"3\" y=\"6\" width=\"14\" height=\"12\" rx=\"2\"/><path d=\"M7 3h12a2 2 0 012 2v10\"/>", "help": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1-1.5 2\"/><path d=\"M12 17h.01\"/>", "pen": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z\"/>", "book": "<path d=\"M2 4h7a3 3 0 013 3v13a2 2 0 00-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8z\"/>", "file": "<path d=\"M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h6\"/>", "link": "<path d=\"M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1\"/>", "check": "<path d=\"M20 6L9 17l-5-5\"/>", "x": "<path d=\"M18 6L6 18M6 6l12 12\"/>", "star": "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.5 2.9 1-6.1L3.1 9.5l6.1-.9z\"/>", "flame": "<path d=\"M12 3c1 3.5 5 5.5 5 10a5 5 0 01-10 0c0-2 1-3.2 2-4 0 1.8 1 2.5 2 2.5 0-3-1-5 1-8.5z\"/>", "play": "<path d=\"M7 4l13 8-13 8z\"/>", "repeat": "<path d=\"M17 2l4 4-4 4\"/><path d=\"M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4\"/><path d=\"M21 13v2a3 3 0 01-3 3H3\"/>", "home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/>", "alert": "<path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4M12 17h.01\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21a8 8 0 0116 0\"/>", "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/>", "moon": "<path d=\"M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z\"/>", "gear": "<path d=\"M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "swap": "<path d=\"M8 3L4 7l4 4\"/><path d=\"M4 7h16\"/><path d=\"M16 21l4-4-4-4\"/><path d=\"M20 17H4\"/>", "back": "<path d=\"M15 6l-6 6 6 6\"/>", "trash": "<path d=\"M3 6h18\"/><path d=\"M8 6V4h8v2\"/><path d=\"M19 6l-1 14H6L5 6\"/><path d=\"M10 11v6M14 11v6\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "chev": "<path d=\"M9 6l6 6-6 6\"/>", "download": "<path d=\"M12 3v12M7 10l5 5 5-5\"/><path d=\"M4 19h16\"/>", "phone": "<rect x=\"6\" y=\"2\" width=\"12\" height=\"20\" rx=\"3\"/><path d=\"M11 18h2\"/>", "share": "<path d=\"M12 15V3M8 7l4-4 4 4\"/><path d=\"M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7\"/>", "copy": "<rect x=\"9\" y=\"9\" width=\"12\" height=\"12\" rx=\"2\"/><path d=\"M5 15V5a2 2 0 012-2h10\"/>", "sparkles": "<path d=\"M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z\"/><path d=\"M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z\"/>", "cloud": "<path d=\"M7 18a4.5 4.5 0 01-.6-8.96A6 6 0 0118 10a4 4 0 01-1 8z\"/>", "merge": "<circle cx=\"6\" cy=\"5\" r=\"2.5\"/><circle cx=\"6\" cy=\"19\" r=\"2.5\"/><circle cx=\"18\" cy=\"12\" r=\"2.5\"/><path d=\"M6 7.5v9M8 6c5 0 8 2.5 8 4.5M8 18c5 0 8-2.5 8-4.5\"/>", "login": "<path d=\"M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4\"/><path d=\"M10 17l5-5-5-5M15 12H3\"/>", "save": "<path d=\"M5 3h11l4 4v12a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z\"/><path d=\"M7 3v5h8M7 21v-7h10v7\"/>", "upload": "<path d=\"M12 15V3M7 8l5-5 5 5\"/><path d=\"M4 19h16\"/>", "mail": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"M3 7l9 6 9-6\"/>", "camera": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"17.5\" cy=\"6.5\" r=\".6\"/>", "heart": "<path d=\"M12 20s-7-4.4-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.6-9 9-9 9z\"/>", "info": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v6M12 7.5h.01\"/>", "chat": "<path d=\"M21 12a8 8 0 01-11.6 7.1L3 21l1.9-5.4A8 8 0 1121 12z\"/>", "edit": "<path d=\"M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16z\"/><path d=\"M13.5 6.5l4 4\"/>", "gift": "<rect x=\"3\" y=\"8\" width=\"18\" height=\"4\" rx=\"1\"/><path d=\"M5 12v8h14v-8M12 8v12\"/><path d=\"M12 8C10 8 8 7 8 5.5S10.5 3 12 8zM12 8c2 0 4-1 4-2.5S13.5 3 12 8z\"/>", "shield": "<path d=\"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z\"/><path d=\"M9 12l2 2 4-4\"/>", "refresh": "<path d=\"M20 11a8 8 0 00-14-4L4 9\"/><path d=\"M4 4v5h5\"/><path d=\"M4 13a8 8 0 0014 4l2-2\"/><path d=\"M20 20v-5h-5\"/>", "volume": "<path d=\"M11 5 6 9H3v6h3l5 4z\"/><path class=\"w1\" d=\"M15.5 9.2a4 4 0 010 5.6\"/><path class=\"w2\" d=\"M18.6 6.4a8 8 0 010 11.2\"/>"};
 function ico(n, cls){
   return `<svg class="ico ${cls||''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||''}</svg>`;
 }
@@ -390,8 +397,8 @@ function openWordModal(id){
   openModal(`
     <h2>${w ? "So'zni tahrirlash" : "Yangi so'z"}</h2>
     ${w ? '' : `<div class="option-group"><label class="group-label">Lug'at</label><select id="wmDeck" class="dp-select">${state.decks.map(d=>`<option value="${d.id}" ${d.id===deckId?'selected':''}>${escapeHTML(d.name)}</option>`).join('')}</select></div>`}
-    <div class="option-group"><label class="group-label">So'z</label><input type="text" id="wmFront" class="wm-input" dir="auto" autocomplete="off" value="${escapeHTML(front)}"></div>
-    <div class="option-group"><label class="group-label">Tarjimasi</label><input type="text" id="wmBack" class="wm-input" dir="auto" autocomplete="off" value="${escapeHTML(back)}"></div>
+    <div class="option-group"><label class="group-label">So'z</label><div class="wm-field"><input type="text" id="wmFront" class="wm-input" dir="auto" autocomplete="off" value="${escapeHTML(front)}">${ttsTxt('wmFront','front',deckId)}</div></div>
+    <div class="option-group"><label class="group-label">Tarjimasi</label><div class="wm-field"><input type="text" id="wmBack" class="wm-input" dir="auto" autocomplete="off" value="${escapeHTML(back)}">${ttsTxt('wmBack','back',deckId)}</div></div>
     <div class="option-group"><label class="group-label">Misol (ixtiyoriy)</label><input type="text" id="wmEx" class="wm-input" dir="auto" autocomplete="off" value="${escapeHTML(w ? (w.example||'') : '')}"></div>
     <div class="btn-row"><button class="btn btn-primary" id="wmSave" style="flex:1">Saqlash</button><button class="btn btn-outline" id="wmCancel">Bekor</button></div>
     ${w ? `<button class="btn btn-danger btn-block" id="wmDel" style="margin-top:12px">${ico('trash')} O'chirish</button>` : ''}`);
@@ -492,7 +499,7 @@ document.addEventListener('keydown', (e)=>{
   if(t.matches && t.matches('.mode-card,.add-deck-option,.deck-card') && (e.key==='Enter' || e.key===' ')){ e.preventDefault(); t.click(); return; }
   if(t.matches && t.matches('input,textarea,select,button')) return;
   if(state.view === 'flashcard-session'){
-    if(e.code === 'Space'){ e.preventDefault(); const c = document.getElementById('flashcard'); if(c) c.classList.toggle('flipped'); }
+    if(e.code === 'Space'){ e.preventDefault(); const c = document.getElementById('flashcard'); if(c) flipCard(c); }
     else if(e.key === 'ArrowRight'){ const b = document.getElementById('judgeKnown'); if(b) b.click(); }
     else if(e.key === 'ArrowLeft'){ const b = document.getElementById('judgeUnknown'); if(b) b.click(); }
     else if(e.key === 's' || e.key === 'S') swapSessionDirection();
@@ -512,6 +519,7 @@ document.addEventListener('click', (e)=>{
 
 /* ================= Router ================= */
 function switchView(viewName){
+  if(window.TTS) TTS.stop();
   state.view = viewName;
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.dataset.view === viewName));
   const tabMap = {
@@ -747,6 +755,7 @@ function openDeckMenu(deckId){
       <button class="btn btn-primary btn-block" id="btnSaveName">Nomni saqlash</button>
       <button class="btn btn-ghost btn-block" id="btnShare">${ico('link')} Ulashish havolasi</button>
       <button class="btn btn-ghost btn-block" id="btnSwap">${ico('swap')} Yo'nalishni almashtirish (old ↔ orqa)</button>
+      ${window.TTS && TTS.supported ? `<button class="btn btn-ghost btn-block" id="btnVoice">${ico('volume')} Ovoz tili</button>` : ''}
       <button class="btn btn-danger btn-block" id="btnDelete">${ico('trash')} Lug'atni o'chirish</button>
       <button class="btn btn-outline btn-block" id="btnCancel">Yopish</button>
     </div>
@@ -759,6 +768,8 @@ function openDeckMenu(deckId){
   document.getElementById('btnShare').onclick = ()=>{
     shareDeck(deckId);
   };
+  const _bv = document.getElementById('btnVoice');
+  if(_bv) _bv.onclick = ()=> TTS.openLangModal(deckId, ()=> openDeckMenu(deckId));
   document.getElementById('btnSwap').onclick = ()=>{
     toggleDeckSwap(deckId);
     toast("Yo'nalish almashtirildi");
@@ -1040,6 +1051,7 @@ function renderDictionary(){
             <button class="fav ${w.favorite?'active':''}" data-fav="${w.id}" aria-label="Sevimli">${ico('star', w.favorite?'filled':'')}</button>
             <div class="status-dot status-${w.status}"></div>
             <button class="wc-edit" data-edit="${w.id}" type="button" aria-label="Tahrirlash">${ico('pen')}</button>
+            ${ttsBtn(w.id,'front','sm')}
             <div class="card-term ${langClass(frontOf(w))}" >${escapeHTML(frontOf(w))}</div>
             <div class="tr">${escapeHTML(backOf(w))}</div>
           </div>
@@ -1371,6 +1383,7 @@ function renderFlashcardSession(){
   const word = sessionNext(fcSession);
   if(!word){ clearPersistedSession('flashcard'); switchView('flashcard-results'); return; }
   persistSession('flashcard', fcSession, word);
+  if(window.TTS) TTS.stop();
 
   el.innerHTML = `
     <div class="card">
@@ -1384,10 +1397,12 @@ function renderFlashcardSession(){
       <div class="flash-stage">
         <div class="flashcard" id="flashcard" tabindex="0" role="button" aria-label="Kartani ag'darish">
           <div class="face face-front">
+            ${ttsBtn(word.id,'front','on-dark')}
             ${wordSpan(frontOf(word), 'hero-word')}
             <div class="hint">Bosib ko'ring ↓</div>
           </div>
           <div class="face face-back">
+            ${ttsBtn(word.id,'back')}
             ${wordSpan(backOf(word), 'hero-word-back')}
             ${word.example ? `<div class="example">${escapeHTML(word.example)}</div>` : ''}
           </div>
@@ -1404,9 +1419,10 @@ function renderFlashcardSession(){
       </div>
     </div>
   `;
+  if(window.TTS) TTS.onShow(word, 'front');
   const cardEl = document.getElementById('flashcard');
-  cardEl.addEventListener('click', ()=> cardEl.classList.toggle('flipped'));
-  cardEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); cardEl.classList.toggle('flipped'); } });
+  cardEl.addEventListener('click', ()=> flipCard(cardEl));
+  cardEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); flipCard(cardEl); } });
   document.getElementById('judgeKnown').addEventListener('click', (e)=>{ e.stopPropagation(); judgeFlashcard(word, true); });
   document.getElementById('judgeUnknown').addEventListener('click', (e)=>{ e.stopPropagation(); judgeFlashcard(word, false); });
 }
@@ -1465,6 +1481,7 @@ function renderQuizSession(){
   const word = sessionNext(quizSession);
   if(!word){ clearPersistedSession('quiz'); switchView('quiz-results'); return; }
   persistSession('quiz', quizSession, word);
+  if(window.TTS) TTS.stop();
 
   const deck = deckOf(word);
   let mates = deck.words.filter(w=>w.id!==word.id);
@@ -1485,6 +1502,7 @@ function renderQuizSession(){
       <div class="dir-row">${dirBtnHTML(word)}${srsBadgeHTML(word)}</div>
       <p class="lead" style="margin-top:16px;">Qaysi biri to'g'ri?</p>
       <div class="quiz-word">${wordSpan(frontOf(word), 'quiz-word-text')}</div>
+      <div class="tts-center">${ttsBtn(word.id,'front')}</div>
       <div class="quiz-options" id="quizOptions">
         ${options.map((o,i)=>`<button class="quiz-option" data-id="${o.id}"><span class="opt-key">${i+1}</span><span>${escapeHTML(backOf(o))}</span></button>`).join('')}
       </div>
@@ -1494,6 +1512,7 @@ function renderQuizSession(){
       </div>
     </div>
   `;
+  if(window.TTS) TTS.onShow(word, 'front');
   const buttons = el.querySelectorAll('.quiz-option');
   buttons.forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -1506,7 +1525,8 @@ function renderQuizSession(){
         if(correctBtn) correctBtn.classList.add('correct');
       }
       sessionJudge(quizSession, word, isCorrect);
-      setTimeout(()=> renderQuizSession(), 900);
+      if(window.TTS) TTS.onAnswer(word);
+      setTimeout(()=> renderQuizSession(), (window.TTS && TTS.autoBack()) ? 2000 : 900);
     });
   });
 }
@@ -1535,6 +1555,7 @@ function renderWriteSession(){
   const word = sessionNext(writeSession);
   if(!word){ clearPersistedSession('write'); switchView('write-results'); return; }
   persistSession('write', writeSession, word);
+  if(window.TTS) TTS.stop();
 
   el.innerHTML = `
     <div class="card">
@@ -1546,6 +1567,7 @@ function renderWriteSession(){
       <div class="dir-row">${dirBtnHTML(word)}${srsBadgeHTML(word)}</div>
       <p class="lead" style="margin-top:16px;">Berilgan so'zning tarjimasini yozing:</p>
       <div class="quiz-word">${wordSpan(frontOf(word), 'quiz-word-text')}</div>
+      <div class="tts-center">${ttsBtn(word.id,'front')}</div>
       <input type="text" class="write-input" id="writeAnswer" placeholder="Javobingiz..." autocomplete="off">
       <div class="write-feedback" id="writeFeedback"></div>
       <div class="btn-row" style="margin-top:16px;">
@@ -1557,6 +1579,7 @@ function renderWriteSession(){
       </div>
     </div>
   `;
+  if(window.TTS) TTS.onShow(word, 'front');
   const input = el.querySelector('#writeAnswer');
   const feedback = el.querySelector('#writeFeedback');
   const checkBtn = el.querySelector('#checkBtn');
@@ -1572,6 +1595,7 @@ function renderWriteSession(){
     input.disabled = true;
     checkBtn.textContent = "Keyingi →";
     sessionJudge(writeSession, word, isCorrect);
+    if(window.TTS) TTS.onAnswer(word);
     checkBtn.onclick = ()=> renderWriteSession();
   }
   checkBtn.addEventListener('click', doCheck);
@@ -1775,6 +1799,8 @@ function renderSettings(){
       </label>
     </div>
 
+    ${window.TTS ? TTS.settingsHTML() : ''}
+
     <div class="card">
       <h2>${ico('user')} Hisob</h2>
       ${currentUser ? `
@@ -1823,6 +1849,7 @@ function renderSettings(){
     </div>
   `;
 
+  if(window.TTS) TTS.bindSettings(el);
   document.getElementById('darkModeCheck').addEventListener('change', (e)=>{
     const next = e.target.checked ? 'dark' : 'light';
     document.body.setAttribute('data-theme', next);
