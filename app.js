@@ -224,7 +224,7 @@ function toast(msg){
   if(!el){
     el = document.createElement('div');
     el.id = 'vocaby-toast'; el.setAttribute('role','status'); el.setAttribute('aria-live','polite');
-    el.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    el.style.cssText = `position:fixed;bottom:calc(92px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(20px);pointer-events:none;
       background:var(--ink);color:var(--sand);padding:13px 22px;border-radius:14px;font-weight:600;
       font-size:14px;z-index:100;opacity:0;transition:all .3s ease;box-shadow:0 10px 30px rgba(0,0,0,0.3);
       max-width:88vw;text-align:center;`;
