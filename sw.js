@@ -1,7 +1,9 @@
 /* ===================== VocabY Service Worker ===================== */
 /* Bu fayl saytni internetsiz ham ishlaydigan qiladi (asosiy fayllarni keshlaydi). */
 
-const CACHE_NAME = 'vocaby-cache-v6';
+const CACHE_NAME = 'vocaby-cache-v7';
+const TTS_CACHE = 'vocaby-tts-v1';
+const TTS_MAX = 300;
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -24,7 +26,7 @@ self.addEventListener('install', (event)=>{
 self.addEventListener('activate', (event)=>{
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k !== CACHE_NAME && k !== TTS_CACHE).map(k => caches.delete(k)))
     ).then(()=> self.clients.claim())
   );
 });
@@ -39,6 +41,23 @@ self.addEventListener('fetch', (event)=>{
   // Faqat o'z saytimiz fayllarini keshlaymiz — Firebase/Firestore/Google Fonts
   // so'rovlariga tegmaymiz, ular internetga to'g'ridan-to'g'ri boradi.
   if(url.origin !== self.location.origin) return;
+
+  // Onlayn ovoz: bir marta eshitilgan so'z keyin internetsiz ham ishlaydi (kesh-birinchi)
+  if(url.pathname === '/api/tts'){
+    event.respondWith(
+      caches.open(TTS_CACHE).then(async cache => {
+        const hit = await cache.match(req);
+        if(hit) return hit;
+        const res = await fetch(req);
+        if(res && res.status === 200){
+          cache.put(req, res.clone());
+          cache.keys().then(ks => { if(ks.length > TTS_MAX) cache.delete(ks[0]); });
+        }
+        return res;
+      })
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(req).then(cached => {

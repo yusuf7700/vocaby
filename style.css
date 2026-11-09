@@ -722,3 +722,7 @@ button.srs-badge{cursor:pointer;font-family:inherit}
 .tts-vlist{max-height:46vh;overflow:auto;border:1px solid var(--border);border-radius:14px}
 .tts-vrow{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border);font-weight:600;font-size:14.5px}
 .tts-vrow:last-child{border-bottom:0}
+
+.tts-online{color:var(--teal-deep);font-weight:600}
+[data-theme="dark"] .tts-online{color:var(--gold)}
+.tts-online .ico{width:15px;height:15px;vertical-align:-3px}

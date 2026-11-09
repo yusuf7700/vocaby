@@ -8,6 +8,8 @@
   'use strict';
   const syn = window.speechSynthesis;
   const OK = !!(syn && window.SpeechSynthesisUtterance);
+  const AUDIO_OK = typeof Audio !== 'undefined';
+  const CAN = OK || AUDIO_OK;
 
   /* ---------- Tillar ---------- */
   const LANGS = [
@@ -27,7 +29,7 @@
 
   /* ---------- Sozlamalar ---------- */
   const SKEY = 'vocaby_tts_v1';
-  let S = { rate:'normal', autoFront:false, autoBack:false };
+  let S = { rate:'normal', autoFront:false, autoBack:false, source:'auto' };
   try{ Object.assign(S, JSON.parse(localStorage.getItem(SKEY)||'{}')); }catch(e){}
   const saveS = ()=>{ try{ localStorage.setItem(SKEY, JSON.stringify(S)); }catch(e){} };
   const RATE = { slow:0.62, normal:0.9, fast:1.12 };
@@ -228,6 +230,57 @@
     return v ? {ok:true, voice:v} : {ok:false, reason:'novoice'};
   }
 
+
+  /* ---------- Onlayn ovoz (qurilmada ovoz o'rnatilmagan bo'lsa) ---------- */
+  const AUD = AUDIO_OK ? new Audio() : null;
+  const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+  const GTL = { zh:'zh-CN', he:'iw' };
+  const _ac = new Map();
+  const apiUrl = (txt, lang, r) => '/api/tts?tl=' + encodeURIComponent(GTL[lang] || lang) + '&r=' + r + '&q=' + encodeURIComponent(txt);
+  const directUrl = (txt, lang) => 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=' + encodeURIComponent(GTL[lang] || lang) + '&q=' + encodeURIComponent(txt);
+  async function fetchAudio(txt, lang){
+    const k = lang + '|' + txt;
+    if(_ac.has(k)) return _ac.get(k);
+    try{
+      const r = await fetch(apiUrl(txt, lang, 1));
+      if(r.ok && /audio/i.test(r.headers.get('content-type') || '')){
+        const b = await r.blob();
+        if(b.size > 200){
+          const url = URL.createObjectURL(b); _ac.set(k, url);
+          if(_ac.size > 60){ const f = _ac.keys().next().value; try{ URL.revokeObjectURL(_ac.get(f)); }catch(e){} _ac.delete(f); }
+          return url;
+        }
+      }
+    }catch(e){}
+    return directUrl(txt, lang);
+  }
+  function playOnline(parts, lang, key, slow, my){
+    const rate = slow ? 0.8 : ({slow:0.85, normal:1, fast:1.2}[S.rate] || 1);
+    let i = 0;
+    const finish = ()=>{ if(my !== seq) return; clearTimeout(cur && cur.timer); setState(key, ''); cur = null; };
+    const fail = ()=>{ if(my !== seq) return; clearTimeout(cur && cur.timer); setState(key, ''); cur = null; flashErr(key); note('onlinefail', lang); };
+    const next = async ()=>{
+      if(my !== seq) return;
+      if(i >= parts.length){ finish(); return; }
+      const part = parts[i++];
+      let url = await fetchAudio(part, lang); if(my !== seq) return;
+      let triedDirect = url.indexOf('translate.google.com') >= 0;
+      const start = ()=>{
+        AUD.onplaying = ()=>{ if(my === seq) setState(key, 'speaking'); };
+        AUD.onended = ()=> next();
+        AUD.onerror = ()=>{
+          if(my !== seq) return;
+          if(!triedDirect){ triedDirect = true; url = directUrl(part, lang); start(); } else fail();
+        };
+        AUD.src = url; AUD.defaultPlaybackRate = rate; AUD.playbackRate = rate;
+        const p = AUD.play(); if(p && p.catch) p.catch(()=>{ if(my === seq){ if(!triedDirect){ triedDirect = true; url = directUrl(part, lang); start(); } else fail(); } });
+      };
+      start();
+    };
+    cur.timer = setTimeout(()=>{ if(my === seq){ try{ AUD.pause(); }catch(e){} setState(key, ''); cur = null; } }, 30000);
+    next();
+  }
+
   /* ---------- Holat va tugmalar ---------- */
   let seq = 0, cur = null;
   const _warned = new Set();
@@ -254,7 +307,9 @@
     else if(kind === 'novoice'){
       if(_warned.has(lang)){ m = `${n} uchun ovoz topilmadi`; }
       else { _warned.add(lang); m = `Qurilmangizda ${n} ovozi yo'q. ${installTip(lang)}`; }
-    } else if(kind === 'fail') m = "Ovoz chiqmadi. Qurilma ovozini va ovozli o'qish sozlamasini tekshiring.";
+    } else if(kind === 'offline') m = `${n} ovozi qurilmada yo'q, onlayn ovoz uchun internet kerak.`;
+    else if(kind === 'onlinefail') m = `Onlayn ovoz ishlamadi. Internetni tekshiring yoki ${n} ovozini qurilmaga o'rnating.`;
+    else if(kind === 'fail') m = "Ovoz chiqmadi. Qurilma ovozini va ovozli o'qish sozlamasini tekshiring.";
     if(m && typeof toast === 'function') toast(m);
   }
 
@@ -262,19 +317,27 @@
     seq++;
     if(cur){ clearTimeout(cur.timer); setState(cur.key, ''); cur = null; }
     if(OK){ try{ syn.cancel(); }catch(e){} }
+    if(AUD){ try{ AUD.onplaying = AUD.onended = AUD.onerror = null; AUD.pause(); }catch(e){} }
   }
 
   async function speak(text, lang, key, slow){
-    if(!OK){ note('unsupported'); return false; }
+    if(!CAN){ note('unsupported'); return false; }
     stop();
     const my = seq;                                  // stop() allaqachon oshirgan
     const clean = prepare(text, lang);
     if(!clean){ return false; }
     cur = { key, timer:null }; setState(key, 'loading');
-    await whenVoices();
+    if(OK) await whenVoices();
     if(my !== seq) return false;
     const info = voiceInfo(lang);
-    if(info.ok === false){ setState(key, ''); cur = null; flashErr(key); note('novoice', lang); return false; }
+    const devOK = info.ok === true;
+    const wantOnline = AUDIO_OK && (S.source === 'online' || (S.source !== 'device' && !devOK));
+    if(wantOnline && (navigator.onLine !== false || !devOK)){
+      if(navigator.onLine === false){ setState(key, ''); cur = null; flashErr(key); note('offline', lang); return false; }
+      playOnline(chunk(clean), lang, key, slow, my);
+      return true;
+    }
+    if(!devOK){ setState(key, ''); cur = null; flashErr(key); note('novoice', lang); return false; }
     const v = info.voice || null;
     const rate = (slow ? RATE.slow : RATE[S.rate] || 0.9) * (lang === 'ar' ? 0.96 : 1);
     const parts = chunk(clean);
@@ -307,8 +370,9 @@
   /* iOS/Safari: birinchi teginishda ovoz tizimini "ochib" qo'yamiz */
   let _unlocked = false;
   function unlock(){
-    if(_unlocked || !OK) return; _unlocked = true;
-    try{ const u = new SpeechSynthesisUtterance(' '); u.volume = 0; syn.speak(u); }catch(e){}
+    if(_unlocked || !CAN) return; _unlocked = true;
+    if(OK){ try{ const u = new SpeechSynthesisUtterance(' '); u.volume = 0; syn.speak(u); }catch(e){} }
+    if(AUD){ try{ AUD.muted = true; AUD.src = SILENT; const p = AUD.play(); const un = ()=>{ try{ AUD.pause(); AUD.muted = false; }catch(e){} }; if(p && p.then) p.then(un, un); else un(); }catch(e){} }
   }
   ['pointerdown','touchend','keydown'].forEach(ev=> document.addEventListener(ev, unlock, {once:false, passive:true, capture:true}));
   document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stop(); });
@@ -316,12 +380,12 @@
 
   /* ---------- Tugma ---------- */
   function btn(wordId, side, cls){
-    if(!OK) return '';
+    if(!CAN) return '';
     const key = wordId + ':' + side;
     return `<button type="button" class="tts-btn ${cls||''}" data-tts data-w="${wordId}" data-side="${side}" data-key="${key}" aria-pressed="false" aria-label="Talaffuzni eshitish" title="Eshitish (P). Uzoq bosing — sekin o'qiydi">${ico('volume')}</button>`;
   }
   function btnText(srcId, side, deckId, cls){
-    if(!OK) return '';
+    if(!CAN) return '';
     const key = 'src:' + srcId;
     return `<button type="button" class="tts-btn ${cls||''}" data-tts data-src="${srcId}" data-side="${side}" data-deck="${deckId||''}" data-key="${key}" aria-pressed="false" aria-label="Eshitish" title="Eshitish">${ico('volume')}</button>`;
   }
@@ -386,7 +450,7 @@
   }
   function onShow(word, side){
     current = { id: word.id, side: side || 'front' };
-    if(S.autoFront && OK){
+    if(S.autoFront && CAN){
       const id = word.id;
       setTimeout(()=>{ if(current && current.id === id && document.body.dataset.mode === 'session') speakWord(id, 'front'); }, 380);
     }
@@ -394,15 +458,16 @@
   function onFlip(isBack){
     if(!current) return;
     current.side = isBack ? 'back' : 'front';
-    if(isBack && S.autoBack && OK) speakWord(current.id, 'back');
+    if(isBack && S.autoBack && CAN) speakWord(current.id, 'back');
   }
-  function onAnswer(word){ if(S.autoBack && OK) speakWord(word.id, 'back'); }
+  function onAnswer(word){ if(S.autoBack && CAN) speakWord(word.id, 'back'); }
 
   /* ---------- Lug'at uchun ovoz tili oynasi ---------- */
   function statusHTML(lang){
     const i = voiceInfo(lang);
     if(i.ok === true) return `<span class="tts-ok">${ico('check','ok')} Ovoz topildi: ${escapeHTML(i.voice.name)}</span>`;
-    if(i.ok === null) return `<span class="tts-wait">Ovozlar yuklanmoqda…</span>`;
+    if(i.ok === null && OK) return `<span class="tts-wait">Ovozlar yuklanmoqda…</span>`;
+    if(S.source !== 'device' && AUDIO_OK) return `<span class="tts-online">${ico('volume')} Qurilmada ovoz yo'q — onlayn ovoz ishlatiladi (internet kerak)</span>`;
     if(i.reason === 'unsupported') return `<span class="tts-bad">${ico('x','bad')} Brauzer qo'llamaydi</span>`;
     return `<span class="tts-bad">${ico('x','bad')} Bu qurilmada ovoz yo'q.</span> <span class="tts-tip">${escapeHTML(installTip(lang))}</span>`;
   }
@@ -455,7 +520,7 @@
     loadVoices();
     const rows = LANGS.map(l=>{
       const i = voiceInfo(l[0]);
-      return `<div class="tts-vrow"><span>${l[1]}</span>${i.ok ? `<span class="tts-ok">${ico('check','ok')}</span>` : `<span class="tts-bad">yo'q</span>`}</div>`;
+      return `<div class="tts-vrow"><span>${l[1]}</span>${i.ok ? `<span class="tts-ok">${ico('check','ok')}</span>` : (S.source !== 'device' && AUDIO_OK) ? `<span class="tts-online">onlayn</span>` : `<span class="tts-bad">yo'q</span>`}</div>`;
     }).join('');
     openModal(`
       <h2>${ico('volume')} Qurilmadagi ovozlar</h2>
@@ -467,7 +532,7 @@
 
   /* ---------- Sozlamalar kartasi ---------- */
   function settingsHTML(){
-    if(!OK) return `<div class="card"><h2>${ico('volume')} Ovozli o'qish</h2><p class="lead">Bu brauzer ovozli o'qishni qo'llamaydi. Chrome, Edge yoki Safari'dan foydalaning.</p></div>`;
+    if(!CAN) return `<div class="card"><h2>${ico('volume')} Ovozli o'qish</h2><p class="lead">Bu brauzer ovozli o'qishni qo'llamaydi. Chrome, Edge yoki Safari'dan foydalaning.</p></div>`;
     return `
     <div class="card">
       <h2>${ico('volume')} Ovozli o'qish</h2>
@@ -480,6 +545,13 @@
           ${[['slow','Sekin'],['normal','Normal'],['fast','Tez']].map(([k,n])=>`<button type="button" role="radio" aria-checked="${S.rate===k}" class="filter-chip ${S.rate===k?'active':''}" data-rate="${k}">${n}</button>`).join('')}
         </div>
       </div>
+      <div class="option-group" style="margin-bottom:12px;">
+        <label class="group-label">Ovoz manbai</label>
+        <div class="tts-seg" role="radiogroup" aria-label="Ovoz manbai">
+          ${[['auto','Avto'],['device','Qurilma'],['online','Onlayn']].map(([k,n])=>`<button type="button" role="radio" aria-checked="${S.source===k}" class="filter-chip ${S.source===k?'active':''}" data-srcmode="${k}">${n}</button>`).join('')}
+        </div>
+        <p class="lead" style="margin:8px 0 0;font-size:13px;">Avto: avval qurilma ovozi, o'rnatilmagan bo'lsa internetdan. Bir marta eshitilgan so'z keyin internetsiz ham ishlaydi.</p>
+      </div>
       <div class="btn-row" style="flex-direction:column;">
         <button class="btn btn-ghost btn-block" id="ttsTestBtn">${ico('volume')} Ovozni sinab ko'rish</button>
         <button class="btn btn-outline btn-block" id="ttsVoicesBtn">Qurilmadagi ovozlar</button>
@@ -488,7 +560,7 @@
     </div>`;
   }
   function bindSettings(root){
-    if(!OK) return;
+    if(!CAN) return;
     const $ = id => root.querySelector('#' + id);
     $('ttsAutoFront').onchange = e=>{ S.autoFront = e.target.checked; saveS(); };
     $('ttsAutoBack').onchange = e=>{ S.autoBack = e.target.checked; saveS(); };
@@ -496,6 +568,10 @@
       S.rate = b.dataset.rate; saveS();
       root.querySelectorAll('[data-rate]').forEach(x=>{ const on = x === b; x.classList.toggle('active', on); x.setAttribute('aria-checked', on); });
       speak('Hello. Salom. مرحبا', 'en', 'test', false);
+    });
+    root.querySelectorAll('[data-srcmode]').forEach(b=> b.onclick = ()=>{
+      S.source = b.dataset.srcmode; saveS();
+      root.querySelectorAll('[data-srcmode]').forEach(x=>{ const on = x === b; x.classList.toggle('active', on); x.setAttribute('aria-checked', on); });
     });
     $('ttsTestBtn').onclick = ()=>{
       const w = allWordsFlat()[0];
@@ -505,9 +581,9 @@
   }
 
   window.TTS = {
-    supported: OK, btn, btnText, stop, speakWord, speakCurrent, onShow, onFlip, onAnswer,
+    supported: CAN, btn, btnText, stop, speakWord, speakCurrent, onShow, onFlip, onAnswer,
     openLangModal, openVoicesModal, settingsHTML, bindSettings,
-    autoBack: ()=> !!(S.autoBack && OK),
-    _detect: { detectCol, deckLangs, scriptLang, prepare, chunk }          // sinov uchun
+    autoBack: ()=> !!(S.autoBack && CAN),
+    _state: ()=>({S}), _detect: { detectCol, deckLangs, scriptLang, prepare, chunk }          // sinov uchun
   };
 })();
